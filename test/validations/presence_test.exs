@@ -44,8 +44,8 @@ defmodule PresenceTest do
     end
 
     test "keyword list, included presence validation" do
-        assert Blueprint.valid?(name: "Foo", _vex: [name: [presence: true]])
-        assert !Blueprint.valid?(name: "Foo", _vex: [id: [presence: true]])
+        assert Blueprint.valid?(name: "Foo", _rules: [name: [presence: true]])
+        assert !Blueprint.valid?(name: "Foo", _rules: [id: [presence: true]])
     end
 
     test "record, included presence validation" do

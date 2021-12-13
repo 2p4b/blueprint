@@ -1,8 +1,10 @@
 defmodule AbsenceTestRecord do
-    defstruct name: nil, identifier: nil
     use Blueprint.Struct
 
-    validates(:name, absence: true)
+    blueprint do
+        field :name, :string, absence: true
+    end
+
 end
 
 defmodule AbsenceTest do
@@ -29,8 +31,8 @@ defmodule AbsenceTest do
     end
 
     test "keyword list, included absence validation" do
-        assert !Blueprint.valid?(name: "Foo", _vex: [name: [absence: true]])
-        assert Blueprint.valid?(name: "Foo", _vex: [id: [absence: true]])
+        assert !Blueprint.valid?(name: "Foo", _rules: [name: [absence: true]])
+        assert Blueprint.valid?(name: "Foo", _rules: [id: [absence: true]])
     end
 
     test "record, included absence validation" do

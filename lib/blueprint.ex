@@ -49,6 +49,12 @@ defmodule Blueprint do
                     rules when is_function(rules) ->
                         [by: validations]
 
+                    rules when is_boolean(rules) ->
+                        [boolean: true]
+
+                    rules when rules == :uuid ->
+                        [uuid: true]
+
                     rules when is_atom(rules) ->
                         [struct: rules]
 

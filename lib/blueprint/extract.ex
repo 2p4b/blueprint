@@ -8,7 +8,7 @@ end
 
 defimpl Blueprint.Extract, for: List do
     def settings(data) do
-        Keyword.get(data, :_vex)
+        Keyword.get(data, :_rules)
     end
 
     def attribute(map, path) when is_list(path) do
