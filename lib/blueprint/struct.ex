@@ -211,7 +211,8 @@ defmodule Blueprint.Struct do
 
     defp rules_for(:string, opts), do: opts
 
-    defp rules_for(:number, rules) do
+    defp rules_for(type, rules) 
+    when type in [:number, :integer, :float] do
         valid_rules = [
             :equal_to,
             :less_than,
@@ -237,6 +238,10 @@ defmodule Blueprint.Struct do
 
     defp rules_for(:boolean, rules) do
         [boolean: true] ++ rules
+    end
+
+    defp rules_for(:list, rules) do
+        extract_rules(:list, [:of], rules)
     end
 
     defp extract_rules(type, valid_rules, opts) do

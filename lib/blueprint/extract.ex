@@ -31,29 +31,6 @@ defimpl Blueprint.Extract, for: Map do
 end
 
 defmodule Blueprint.Extract.Struct do
-    @moduledoc false
-    defmacro for_struct do
-        quote do
-            defimpl Blueprint.Blank, for: __MODULE__ do
-                def blank?(struct), do: struct |> Map.from_struct() |> map_size == 0
-            end
-
-            defimpl Blueprint.Extract, for: __MODULE__ do
-                def settings(%{__struct__: module}) do
-                    module.__blueprint__()
-                end
-
-                def attribute(map, [root_attr | path]) do
-                    map |> Map.get(root_attr) |> get_in(path)
-                end
-
-                def attribute(map, name) do
-                    Map.get(map, name)
-                end
-            end
-        end
-    end
-
     defmacro for_struct(opts) do
         quote do
             with opts <- unquote(opts) do
@@ -96,7 +73,7 @@ defimpl Blueprint.Extract, for: Tuple do
     end
 
     defp record_validations(name) do
-        name.__record__(:vex_validations)
+        name.__record__(:_rules)
         rescue
         _ -> []
     end

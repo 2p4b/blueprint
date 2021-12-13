@@ -41,6 +41,11 @@ defmodule Blueprint do
         results(data, Extract.settings(data))
     end
 
+    def results(data, settings) 
+    when not(is_list(data)) and not(is_map(data)) do
+        results([value: data], value: settings)
+    end
+
     def results(data, settings) do
         settings
         |> Enum.map(fn {attribute, validations} ->
@@ -135,7 +140,7 @@ defmodule Blueprint do
         Blueprint.Validators.Exclusion
     """
     def validator(name) do
-        case name |> validator(sources()) do
+        case validator(name, sources()) do
             nil ->
                 raise InvalidValidatorError, validator: name, sources: sources()
 
@@ -168,7 +173,7 @@ defmodule Blueprint do
     end
 
     defp sources do
-        case Application.get_env(:blueprint, :sources) do
+        case Application.get_env(:blueprint, :validators) do
             nil -> [Blueprint.Validators]
             sources -> sources
         end

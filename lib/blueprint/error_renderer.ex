@@ -1,7 +1,7 @@
 defmodule Blueprint.ErrorRenderer do
     @moduledoc """
     Implementation of this behaviour should be set in validator options as `:error_renderer`
-    or in `:vex` application config with same key.
+    or in `:blueprint` application config with same key.
     Common pattern is to expect `:message` key in validator options and if it not set
     use `default_message` (use `get_message` function for it).
     Result of `message` function appears in `Blueprint.errors` error tuple as last element, for those

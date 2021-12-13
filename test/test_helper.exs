@@ -8,6 +8,16 @@ defmodule RecordTest do
 
 end
 
+defmodule DiceTest do
+    use Blueprint.Struct
+    
+    blueprint do
+        field :numbers, :list, of: :number
+        field :users, :list, of: UserTest
+    end
+
+end
+
 defmodule UserTest do
     use Blueprint.Struct
     blueprint do

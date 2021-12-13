@@ -17,7 +17,7 @@ defmodule Blueprint.Validator.ErrorMessage do
 
     @doc """
     Extract the error message renderer and pass params to it. Looking for `:error_renderer` in validator options,
-    then `:error_renderer` in `:vex` application config, if not found use `Blueprint.ErrorRenderers.EEx` as default.
+    then `:error_renderer` in `:blueprint` application config, if not found use `Blueprint.ErrorRenderers.EEx` as default.
 
     ## Examples
 
@@ -43,7 +43,7 @@ defmodule Blueprint.Validator.ErrorMessage do
             Keyword.keyword?(options) && Keyword.has_key?(options, :error_renderer) ->
                 options[:error_renderer]
 
-            renderer = Application.get_env(:vex, :error_renderer) ->
+            renderer = Application.get_env(:blueprint, :error_renderer) ->
                 renderer
 
             true ->

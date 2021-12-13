@@ -1,6 +1,7 @@
 defmodule ConfirmationTest do
     use ExUnit.Case
 
+    @tag :confirmation
     test "keyword list, provided confirmation validation" do
         assert Blueprint.valid?([password: "1234", password_confirmation: "1234"],
             password: [confirmation: true]

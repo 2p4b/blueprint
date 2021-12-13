@@ -10,6 +10,7 @@ end
 defmodule AbsenceTest do
     use ExUnit.Case
 
+    @tag :absence
     test "keyword list, provided absence validation" do
         assert !Blueprint.valid?([name: "Foo"], name: [absence: true])
         assert Blueprint.valid?([name: ""], name: [absence: true])
@@ -19,6 +20,7 @@ defmodule AbsenceTest do
         assert Blueprint.valid?([name: "Foo"], id: [absence: true])
     end
 
+    @tag :absence
     test "map, provided absence validation" do
         assert !Blueprint.valid?(%{name: "Foo"}, name: [absence: true])
         assert !Blueprint.valid?(%{"name" => "Foo"}, %{"name" => [absence: true]})
@@ -30,11 +32,13 @@ defmodule AbsenceTest do
         assert Blueprint.valid?(%{"name" => "Foo"}, name: [absence: true])
     end
 
+    @tag :absence
     test "keyword list, included absence validation" do
         assert !Blueprint.valid?(name: "Foo", _rules: [name: [absence: true]])
         assert Blueprint.valid?(name: "Foo", _rules: [id: [absence: true]])
     end
 
+    @tag :absence
     test "record, included absence validation" do
         assert !Blueprint.valid?(%AbsenceTestRecord{name: "I have a name"})
         assert Blueprint.valid?(%AbsenceTestRecord{name: nil})
