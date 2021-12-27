@@ -84,7 +84,7 @@ defmodule Blueprint.Struct do
                 struct(__MODULE__, attr)
             end
 
-            def from(strt, remap\\[]) when is_struct(strt) do
+            def from(strt, remap \\ []) when is_struct(strt) do
                 params =
                     Enum.reduce(remap, Map.from_struct(strt), fn({nkey, okey}, acc) ->
                         with {:ok, value} <- Map.fetch(acc, okey) do
@@ -225,7 +225,17 @@ defmodule Blueprint.Struct do
 
     defp rules_for(:uuid, rules) do
         valid_rules = [:format]
-        [uuid: true] ++ extract_rules(:uuid, valid_rules, rules)
+        {uuid_rules, other_rules} = 
+            extract_rules(:uuid, valid_rules, rules)
+            |> Keyword.pop(:uuid, [])
+
+        cond do
+            Keyword.has_key?(uuid_rules, :format) ->
+                [uuid: uuid_rules] ++ other_rules
+
+            true ->
+                [uuid: [format: :default]] ++ other_rules
+        end
     end
 
     defp rules_for(:map, rules) do
