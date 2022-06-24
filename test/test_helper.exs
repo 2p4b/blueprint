@@ -8,12 +8,22 @@ defmodule RecordTest do
 
 end
 
+defmodule ValueStruct do
+    use Blueprint.Struct
+    
+    blueprint do
+        field :value, :value, presence: true
+    end
+
+end
+
 defmodule DiceTest do
     use Blueprint.Struct
     
     blueprint do
         field :numbers, :list, of: :number
         field :users, :list, of: UserTest
+        field :svalue, :value, presence: true
     end
 
 end

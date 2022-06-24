@@ -211,8 +211,9 @@ defmodule Blueprint.Struct do
 
     defp rules_for(:string, opts), do: opts
 
-    defp rules_for(type, rules) 
-    when type in [:number, :integer, :float] do
+    defp rules_for(:value, opts), do: [value: opts]
+
+    defp rules_for(type, rules) when type in [:number, :integer, :float] do
         valid_rules = [
             :equal_to,
             :less_than,

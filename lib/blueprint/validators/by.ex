@@ -75,6 +75,12 @@ defmodule Blueprint.Validators.By do
     def validate(value, context, func) when is_function(func),
     do: validate(value, context, function: func)
 
+    def validate(value, context, func) when is_struct(context) and is_atom(func) do
+        validate(value, context, function: fn value, context -> 
+            Kernel.apply(context.__struct__, func, [value, context])
+        end)
+    end
+
     def validate(value, context, options) when is_list(options) do
         unless_skipping(value, options) do
             function = Keyword.get(options, :function)
