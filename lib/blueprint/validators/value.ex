@@ -5,7 +5,7 @@ defmodule Blueprint.Validators.Value do
         validate(value, nil, options)
     end
 
-    def validate(_value, _context, _options) do
+    def validate(_value, _context, _opts) do
         :ok
     end
 
