@@ -52,11 +52,12 @@ defmodule Blueprint.Validators.Required do
     use Blueprint.Validator
 
     @message_fields [value: "The bad value"]
-    def validate(value, options) do
-        if Blueprint.Blank.blank?(value) do
-            {:error, message(options, "is required", value: value)}
-        else
-            :ok
-        end
+    def validate(nil, options) do
+        {:error, message(options, "is required", value: nil)}
     end
+
+    def validate(_val, _options) do
+        :ok
+    end
+
 end

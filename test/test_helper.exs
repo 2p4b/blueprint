@@ -12,7 +12,8 @@ defmodule ValueStruct do
     use Blueprint.Struct
     
     blueprint do
-        field :value, :value, presence: true
+        field :id,      :uuid,  default: nil
+        field :value,   :value, presence: true
     end
 
 end

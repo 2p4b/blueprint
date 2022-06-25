@@ -76,7 +76,7 @@ defmodule Blueprint.Struct do
                         end
                     end)
 
-                struct!(__MODULE__, params)
+                struct(__MODULE__, params)
             end
 
             def new(attr) when is_list(attr) do
@@ -136,7 +136,7 @@ defmodule Blueprint.Struct do
         nullable? = enforce_by_default? && !has_default?
 
         Module.put_attribute(mod, :bp_keys, name)
-        Module.put_attribute(mod, :bp_rules, {name, [struct: clean_rules(opts)]})
+        Module.put_attribute(mod, :bp_rules, {name, [struct: clean_rules(opts, nullable?)]})
         Module.put_attribute(mod, :bp_fields, {name, nil})
         Module.put_attribute(mod, :bp_types, {name, type_for(type, nullable?)})
 
@@ -159,7 +159,7 @@ defmodule Blueprint.Struct do
         nullable? = enforce_by_default? && !has_default?
 
         Module.put_attribute(mod, :bp_keys, name)
-        Module.put_attribute(mod, :bp_rules, {name, [map: clean_rules(opts)]})
+        Module.put_attribute(mod, :bp_rules, {name, [map: clean_rules(opts, nullable?)]})
         Module.put_attribute(mod, :bp_fields, {name, nil})
         Module.put_attribute(mod, :bp_types, {name, type_for(type, nullable?)})
 
@@ -185,12 +185,25 @@ defmodule Blueprint.Struct do
                 !!opts[:required]
             end
 
-        nullable? = !has_default? && !enforce?
+        default_is_nil? = 
+            if has_default? do
+                Keyword.get(opts, :default) === nil
+            else
+                false
+            end
+
+
+        nullable? = 
+            if has_default? and default_is_nil? do
+                true
+            else
+                !has_default? && !enforce?
+            end
 
         rules  = rules_for(type, opts)
 
         Module.put_attribute(mod, :bp_keys, name)
-        Module.put_attribute(mod, :bp_rules, {name, clean_rules(rules)})
+        Module.put_attribute(mod, :bp_rules, {name, clean_rules(rules, nullable?)})
         Module.put_attribute(mod, :bp_fields, {name, opts[:default]})
         Module.put_attribute(mod, :bp_types, {name, type_for(type, nullable?)})
 
@@ -270,12 +283,25 @@ defmodule Blueprint.Struct do
         end)
     end
 
-    defp clean_rules(opts) when is_list(opts) do
-        opts
-        |> Keyword.delete(:default)
+    defp clean_rules(opts, nullable) when is_list(opts) do
+        case nullable do
+            true ->
+                opts
+                |> Keyword.delete(:default)
+                |> Keyword.delete(:required) 
+                |> Keyword.delete(:nullable)
+                |> Enum.concat([nullable: true])
+
+            false ->
+                opts
+                |> Keyword.delete(:default)
+                |> Keyword.delete(:required)
+                |> Keyword.delete(:nullable)
+                |> Enum.concat([required: true])
+        end
     end
 
-    defp clean_rules(opts) do
+    defp clean_rules(opts, _nullable) do
         opts
     end
 end

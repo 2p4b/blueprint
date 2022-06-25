@@ -79,9 +79,18 @@ defmodule Blueprint do
                     end
                 end)
 
-            case presence_rules do
-                [] ->
-                    Enum.map(validations, fn {name, options} ->
+
+            value = extract(data, attribute, nil)
+
+            nullable = Keyword.get(validations, :nullable)
+
+            case {nullable, value, presence_rules} do
+                {true, nil, _} -> []
+
+                {_, _, []} ->
+                    validations
+                    |> Keyword.delete(:nullable)
+                    |> Enum.map(fn {name, options} ->
                         result(data, attribute, name, options)
                     end)
 
@@ -94,7 +103,9 @@ defmodule Blueprint do
                     if Enum.find(errors, &(elem(&1, 0) in [:error, :not_applicable])) do
                         errors
                     else
-                        Enum.map(other_rules, fn {name, options} ->
+                        other_rules
+                        |> Keyword.delete(:nullable)
+                        |> Enum.map(fn {name, options} ->
                             result(data, attribute, name, options)
                         end)
                     end
