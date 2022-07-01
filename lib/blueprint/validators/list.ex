@@ -1,8 +1,6 @@
 defmodule Blueprint.Validators.List do
     use Blueprint.Validator
 
-    @native_types [:number, :integer, :boolean, :float, :string, :struct]
-
     def validate(value, options) when is_list(options) do
         validate(value, nil, options)
     end
@@ -16,24 +14,20 @@ defmodule Blueprint.Validators.List do
     when is_list(value) and is_list(options) do
         list_type = Keyword.get(options, :of)
         case list_type do
-            type when is_atom(type) and type in @native_types ->
-                invalid_index =
-                    Enum.find_index(value, fn val -> 
-                        !Blueprint.valid?(val, [{type, true}])
-                    end)
-                if is_nil(invalid_index) do
-                    :ok
-                else
-                    msg = "invalid list value at #{invalid_index}"
-                    {:error, message(options, msg, value: value)}
-                end
-
-            # If type is not a native type then
-            # type must be a struct
             type when is_atom(type) ->
+
+                is_struct_type = 
+                    with [char|_] = Atom.to_string(type) |> String.codepoints() do
+                        char |> String.upcase() === char
+                    end
+
                 invalid_index =
                     Enum.find_index(value, fn val -> 
-                        !Blueprint.valid?([value: val], value: [struct: type])
+                        if is_struct_type do
+                            !Blueprint.valid?([value: val], value: [struct: type])
+                        else
+                            !Blueprint.valid?(val, [{type, true}])
+                        end
                     end)
 
                 if is_nil(invalid_index) do
