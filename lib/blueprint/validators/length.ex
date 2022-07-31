@@ -26,19 +26,19 @@ defmodule Blueprint.Validators.Length do
     ## Examples
 
         iex> Blueprint.Validators.Length.validate("foo", 3)
-        :ok
+        {:ok, "foo"}
 
         iex> Blueprint.Validators.Length.validate("foo", 2)
         {:error, "must have a length of 2"}
 
         iex> Blueprint.Validators.Length.validate(nil, [is: 2, allow_nil: true])
-        :ok
+        {:ok, nil}
 
         iex> Blueprint.Validators.Length.validate("", [is: 2, allow_blank: true])
-        :ok
+        {:ok, ""}
 
         iex> Blueprint.Validators.Length.validate("foo", min: 2, max: 8)
-        :ok
+        {:ok, "foo"}
 
         iex> Blueprint.Validators.Length.validate("foo", min: 4)
         {:error, "must have a length of at least 4"}
@@ -50,19 +50,19 @@ defmodule Blueprint.Validators.Length do
         {:error, "must be the right length"}
 
         iex> Blueprint.Validators.Length.validate("foo", is: 3)
-        :ok
+        {:ok, "foo"}
 
         iex> Blueprint.Validators.Length.validate("foo", is: 2)
         {:error, "must have a length of 2"}
 
         iex> Blueprint.Validators.Length.validate("foo", in: 1..6)
-        :ok
+        {:ok, "foo"}
 
         iex> Blueprint.Validators.Length.validate("foo", in: 8..10)
         {:error, "must have a length between 8 and 10"}
 
         iex> Blueprint.Validators.Length.validate("four words are here", max: 4, tokenizer: &String.split/1)
-        :ok
+        {:ok, "foor"}
 
     ## Custom Error Messages
 
@@ -80,8 +80,6 @@ defmodule Blueprint.Validators.Length do
     """
     use Blueprint.Validator
 
-    alias Blueprint.Blank
-
     @message_fields [
         value: "Bad value",
         tokens: "Tokens from value",
@@ -95,7 +93,7 @@ defmodule Blueprint.Validators.Length do
     def validate(value, options) when is_list(options) do
         unless_skipping(value, options) do
             tokenizer = Keyword.get(options, :tokenizer, &tokens/1)
-            tokens = if Blank.blank?(value), do: [], else: tokenizer.(value)
+            tokens = tokenizer.(value)
             size = Kernel.length(tokens)
             {lower, upper} = limits = bounds(options)
 
@@ -119,14 +117,14 @@ defmodule Blueprint.Validators.Length do
 
 
             msg_params = [
-                    value: value,
-                    tokens: tokens,
-                    size: size,
-                    min: lower,
-                    max: upper
+                tokens: tokens,
+                value: value,
+                size: size,
+                min: lower,
+                max: upper
             ]
 
-            result(has_errors, message(options, default_message, msg_params))
+            result(has_errors, value, message(options, default_message, msg_params))
         end
     end
 
@@ -148,7 +146,7 @@ defmodule Blueprint.Validators.Length do
     defp tokens(value) when is_binary(value), do: String.graphemes(value)
     defp tokens(value), do: value
 
-    defp result(true, _), do: :ok
-    defp result(false, message), do: {:error, message}
+    defp result(true, value, _), do: {:ok, value}
+    defp result(false, _value, message), do: {:error, message}
 
 end

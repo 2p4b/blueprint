@@ -22,7 +22,7 @@ defmodule Blueprint.Validators.Exclusion do
         {:error, "1 shouldn't be in [1, 2, 3]"}
 
         iex> Blueprint.Validators.Exclusion.validate(4, [1, 2, 3])
-        :ok
+        {:ok, 4}
 
         iex> Blueprint.Validators.Exclusion.validate("a", ~w(a b c))
         {:error, ~S(must not be one of ["a", "b", "c"])}
@@ -30,17 +30,6 @@ defmodule Blueprint.Validators.Exclusion do
         iex> Blueprint.Validators.Exclusion.validate("a", in: ~w(a b c), message: "must not be abc, talkin' 'bout 123")
         {:error, "must not be abc, talkin' 'bout 123"}
 
-    ## Custom Error Messages
-
-    Custom error messages (in EEx format), provided as :message, can use the following values:
-
-        iex> Blueprint.Validators.Exclusion.__validator__(:message_fields)
-        [value: "The bad value", list: "List"]
-
-    An example:
-
-        iex> Blueprint.Validators.Exclusion.validate("a", in: ~w(a b c), message: "<%= inspect value %> is a disallowed value")
-        {:error, ~S("a" is a disallowed value)}
     """
     use Blueprint.Validator
 
@@ -54,14 +43,14 @@ defmodule Blueprint.Validators.Exclusion do
 
                 has_errors =!Enum.member?(list, value)
 
-                result(has_errors, message(options, msg, value: value, list: list))
+                result(has_errors, value, message(options, msg, value: value, list: list))
             end
         else
             validate(value, in: options)
         end
     end
 
-    defp result(true, _), do: :ok
-    defp result(false, message), do: {:error, message}
+    defp result(true, value, _), do: {:ok, value}
+    defp result(false, _value, message), do: {:error, message}
 
 end

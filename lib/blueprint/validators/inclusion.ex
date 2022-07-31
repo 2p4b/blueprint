@@ -13,25 +13,25 @@ defmodule Blueprint.Validators.Inclusion do
     ## Examples
 
         iex> Blueprint.Validators.Inclusion.validate(1, [1, 2, 3])
-        :ok
+        {:ok, [1,2,3]}
 
         iex> Blueprint.Validators.Inclusion.validate(1, [in: [1, 2, 3]])
-        :ok
+        {:ok, [1,2,3]}
 
         iex> Blueprint.Validators.Inclusion.validate(4, [1, 2, 3])
         {:error, "must be one of [1, 2, 3]"}
 
         iex> Blueprint.Validators.Inclusion.validate("a", ~w(a b c))
-        :ok
+        {:ok, ~w(a b c)}
 
         iex> Blueprint.Validators.Inclusion.validate(nil, ~w(a b c))
         {:error, ~S(must be one of ["a", "b", "c"])}
 
         iex> Blueprint.Validators.Inclusion.validate(nil, [in: ~w(a b c), allow_nil: true])
-        :ok
+        {:ok, nil}
 
         iex> Blueprint.Validators.Inclusion.validate("", [in: ~w(a b c), allow_blank: true])
-        :ok
+        {:ok, ""}
 
     ## Custom Error Messages
 
@@ -55,14 +55,14 @@ defmodule Blueprint.Validators.Inclusion do
                 list = Keyword.get(options, :in)
                 msg = "must be one of #{inspect(list)}"
                 has_errors = Enum.member?(list, value)
-                result(has_errors, message(options, msg, value: value, list: list))
+                result(has_errors, value, message(options, msg, value: value, list: list))
             end
         else
             validate(value, in: options)
         end
     end
 
-    defp result(true, _), do: :ok
-    defp result(false, message), do: {:error, message}
+    defp result(true, value, _), do: {:ok, value}
+    defp result(false, _value, message), do: {:error, message}
 
 end

@@ -11,7 +11,7 @@ defmodule Blueprint.Validators.Integer do
     end
 
     def validate(value, _context, _options) when is_integer(value) do
-        :ok
+        {:ok, value}
     end
 
     def validate(value, _context, options) do

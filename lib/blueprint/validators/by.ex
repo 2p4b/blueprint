@@ -1,75 +1,7 @@
 defmodule Blueprint.Validators.By do
-    @moduledoc """
-    Ensure a value meets a custom criteria.
-
-    Provide a function that will accept a value and return a true/false result.
-
-    ## Options
-
-    None, a function with arity 1 must be provided.
-
-     * `:function`: The function to check. Should have an arity of 1 and return true/false.
-     * `:message`: Optional. A custom error message. May be in EEx format
-       and use the fields described in "Custom Error Messages," below.
-
-    The function can be provided in place of the keyword list if no other options are needed.
-
-    ## Examples
-
-        iex> Blueprint.Validators.By.validate(2, &(&1 == 2))
-        :ok
-
-        iex> Blueprint.Validators.By.validate(3, &(&1 == 2))
-        {:error, "must be valid"}
-
-        iex> Blueprint.Validators.By.validate(["foo", "foo"], &is_list/1)
-        :ok
-
-        iex> Blueprint.Validators.By.validate("sgge", fn (word) -> word |> String.reverse == "eggs" end)
-        :ok
-
-        iex> Blueprint.Validators.By.validate(nil, [function: &is_list/1, allow_nil: true])
-        :ok
-
-        iex> Blueprint.Validators.By.validate({}, [function: &is_list/1, allow_blank: true])
-        :ok
-
-        iex> Blueprint.Validators.By.validate([1], [function: &is_list/1, message: "must be a list"])
-        :ok
-
-        iex> Blueprint.Validators.By.validate("a", [function: &is_list/1, message: "must be a list"])
-        {:error, "must be a list"}
-
-        iex> Blueprint.Validators.By.validate(
-        ...>   "a", [function: fn (v) when is_list(v) -> :ok
-        ...>                      (v) -> {:error, {:not_list, v}} end])
-        {:error, {:not_list, "a"}}
-
-        iex> Blueprint.Validators.By.validate(
-        ...>   [], [function: fn (v) when is_list(v) -> :ok
-        ...>                     (v) -> {:error, {:not_list, v}} end])
-        :ok
-
-    ## Custom Error Messages
-
-    Custom error messages (in EEx format), provided as :message, can use the following values:
-
-        iex> Blueprint.Validators.By.__validator__(:message_fields)
-        [value: "The bad value"]
-
-    An example:
-
-        iex> Blueprint.Validators.By.validate("blah", [function: &is_list/1, message: "<%= inspect value %> isn't a list"])
-        {:error, ~S("blah" isn't a list)}
-    """
     use Blueprint.Validator
 
-    @message_fields [value: "The bad value"]
-    def validate(value, func) when is_function(func), do: validate(value, function: func)
-
-    def validate(value, options) when is_list(options) do
-        validate(value, nil, options)
-    end
+    def validate(value, fun), do: validate(value, nil, fun)
 
     @message_fields [value: "The bad value"]
     def validate(value, context, func) when is_function(func),
@@ -89,11 +21,8 @@ defmodule Blueprint.Validators.By do
                 {:error, reason} ->
                     {:error, reason}
 
-                falsy when falsy === false or falsy === nil ->
-                    {:error, message(options, "must be valid", value: value)}
-
                 _ ->
-                    :ok
+                    {:ok, value}
             end
         end
     end

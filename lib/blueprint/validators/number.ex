@@ -31,10 +31,10 @@ defmodule Blueprint.Validators.Number do
         {:error, "must be a number"}
 
         iex> Blueprint.Validators.Number.validate(3.14, is: true)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate("not_a_number", is: false)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate(3.14, is: false)
         {:error, "must not be a number"}
@@ -45,10 +45,10 @@ defmodule Blueprint.Validators.Number do
         {:error, "must be a number"}
 
         iex> Blueprint.Validators.Number.validate(3.14, true)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate("not_a_number", false)
-        :ok
+        {:ok, "not_a_number"}
 
         iex> Blueprint.Validators.Number.validate(3.14, false)
         {:error, "must not be a number"}
@@ -59,7 +59,7 @@ defmodule Blueprint.Validators.Number do
         {:error, "must be a number equal to 1.41"}
 
         iex> Blueprint.Validators.Number.validate(3.14, equal_to: 3.14)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate(3.14, equal_to: 6.28)
         {:error, "must be a number equal to 6.28"}
@@ -67,7 +67,7 @@ defmodule Blueprint.Validators.Number do
     Examples when using the `:greater_than` option:
 
         iex> Blueprint.Validators.Number.validate(3.14, greater_than: 1.41)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate(3.14, greater_than: 3.14)
         {:error, "must be a number greater than 3.14"}
@@ -78,10 +78,10 @@ defmodule Blueprint.Validators.Number do
     Examples when using the `:greater_than_or_equal_to` option:
 
         iex> Blueprint.Validators.Number.validate(3.14, greater_than_or_equal_to: 1.41)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate(3.14, greater_than_or_equal_to: 3.14)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate(3.14, greater_than_or_equal_to: 6.28)
         {:error, "must be a number greater than or equal to 6.28"}
@@ -95,7 +95,7 @@ defmodule Blueprint.Validators.Number do
         {:error, "must be a number less than 3.14"}
 
         iex> Blueprint.Validators.Number.validate(3.14, less_than: 6.28)
-        :ok
+        {:ok, 3.14}
 
     Examples when using the `:less_than_or_equal_to` option:
 
@@ -103,10 +103,10 @@ defmodule Blueprint.Validators.Number do
         {:error, "must be a number less than or equal to 1.41"}
 
         iex> Blueprint.Validators.Number.validate(3.14, less_than_or_equal_to: 3.14)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate(3.14, less_than_or_equal_to: 6.28)
-        :ok
+        {:ok, 3.14}
 
     Examples when using the combinations of the above options:
 
@@ -117,10 +117,10 @@ defmodule Blueprint.Validators.Number do
         {:error, "must be a number greater than 0"}
 
         iex> Blueprint.Validators.Number.validate(1.41, is: true, greater_than: 0, less_than_or_equal_to: 3.14)
-        :ok
+        {:ok, 1.41}
 
         iex> Blueprint.Validators.Number.validate(3.14, is: true, greater_than: 0, less_than_or_equal_to: 3.14)
-        :ok
+        {:ok, 3.14}
 
         iex> Blueprint.Validators.Number.validate(6.28, is: true, greater_than: 0, less_than_or_equal_to: 3.14)
         {:error, "must be a number less than or equal to 3.14"}
@@ -197,13 +197,13 @@ defmodule Blueprint.Validators.Number do
         end
     end
 
-    defp do_validate(_, _, nil) do
-        :ok
+    defp do_validate(v, _, nil) do
+        {:ok, v}
     end
 
     defp do_validate(v, :is, o)
     when is_number(v) === o do
-        :ok
+        {:ok, v}
     end
 
     defp do_validate(_, :is, true) do
@@ -221,7 +221,7 @@ defmodule Blueprint.Validators.Number do
 
     defp do_validate(v, :equal_to, o)
     when is_number(v) and v == o do
-        :ok
+        {:ok, v}
     end
 
     defp do_validate(_, :equal_to, o) do
@@ -230,7 +230,7 @@ defmodule Blueprint.Validators.Number do
 
     defp do_validate(v, :greater_than, o)
     when is_number(v) and v > o do
-        :ok
+        {:ok, v}
     end
 
     defp do_validate(_, :greater_than, o) do
@@ -239,7 +239,7 @@ defmodule Blueprint.Validators.Number do
 
     defp do_validate(v, :greater_than_or_equal_to, o)
     when is_number(v) and v >= o do
-        :ok
+        {:ok, v}
     end
 
     defp do_validate(_, :greater_than_or_equal_to, o) do
@@ -248,7 +248,7 @@ defmodule Blueprint.Validators.Number do
 
     defp do_validate(v, :less_than, o)
     when is_number(v) and v < o do
-        :ok
+        {:ok, v}
     end
 
     defp do_validate(_, :less_than, o) do
@@ -257,7 +257,7 @@ defmodule Blueprint.Validators.Number do
 
     defp do_validate(v, :less_than_or_equal_to, o)
     when is_number(v) and v <= o do
-        :ok
+        {:ok, v}
     end
 
     defp do_validate(_, :less_than_or_equal_to, o) do

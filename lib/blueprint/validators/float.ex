@@ -12,7 +12,7 @@ defmodule Blueprint.Validators.Float do
 
     def validate(value, _context, options)
     when is_float(value) and is_list(options) do
-        :ok
+        {:ok, value}
     end
 
     def validate(value, _context, options) do
