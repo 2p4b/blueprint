@@ -3,6 +3,75 @@ defmodule Blueprint.Validator do
     Common validator behavior.
     """
 
+    defmodule Behaviour do
+        @moduledoc false
+
+        @callback validate(data :: any, options :: any) :: atom | {atom, String.t()}
+        @callback validate(data :: any, context :: any, options :: any) :: atom | {atom, String.t()}
+    end
+
+    defmodule ErrorMessage do
+        @moduledoc false
+
+        defmacro __using__(_) do
+            quote do
+                @message_fields []
+                @before_compile unquote(__MODULE__)
+                import unquote(__MODULE__)
+            end
+        end
+
+        defmacro __before_compile__(_) do
+            quote do
+                def __validator__(:message_fields), do: @message_fields
+            end
+        end
+
+        def message(options, default, context \\ []) do
+            renderer = extract_error_renderer(options)
+            renderer.message(options, default, context)
+        end
+
+        defp extract_error_renderer(options) do
+            cond do
+                Keyword.keyword?(options) && Keyword.has_key?(options, :error_renderer) ->
+                    options[:error_renderer]
+
+                renderer = Application.get_env(:blueprint, :error_renderer) ->
+                    renderer
+
+                true ->
+                    Blueprint.ErrorRenderers.EEx
+            end
+        end
+    end
+
+    defmodule Skipping do
+        @moduledoc false
+
+        @doc """
+        Checks for allowing blank/nil values, skipping validations.
+        """
+        defmacro unless_skipping(value, options, do: unskipped) do
+            quote do
+                if skip?(unquote(value), unquote(options)) do
+                    :ok
+                else
+                    unquote(unskipped)
+                end
+            end
+        end
+
+        def skip?(value, options) do
+            cond do
+                Keyword.get(options, :allow_blank) -> Blueprint.Blank.blank?(value)
+                Keyword.get(options, :allow_nil) -> value == nil
+                true -> false
+            end
+        end
+    end
+
+
     defmacro __using__(_) do
         quote do
             @behaviour Blueprint.Validator.Behaviour
@@ -17,57 +86,6 @@ defmodule Blueprint.Validator do
         end
     end
 
-    @doc """
-    Determine if a validation should be executed based on any conditions provided
-    ## Examples
-    If an attribute is/isn't present (non-blank):
-
-        iex> Blueprint.Validator.validate?([name: "foo", state: "new"], if: :state)
-        true
-        iex> Blueprint.Validator.validate?([name: "foo", state: "new"], unless: :state)
-        false
-
-    If an attribute does/doesn't match a value:
-
-        iex> Blueprint.Validator.validate?([name: "foo", state: "new"], if: [state: "new"])
-        true
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], if: [state: "new"])
-        false
-        iex> Blueprint.Validator.validate?([name: "foo", state: "new"], unless: [state: "new"])
-        false
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], unless: [state: "new"])
-        true
-
-    If the data does/doesn't match another custom condition:
-
-        iex> Blueprint.Validator.validate?([name: "foo"], if: &(&1[:name] == "foo"))
-        true
-        iex> Blueprint.Validator.validate?([name: "foo"], unless: &(&1[:name] == "foo"))
-        false
-        iex> Blueprint.Validator.validate?([name: "foo"], if: &(&1[:name] != "foo"))
-        false
-        iex> Blueprint.Validator.validate?([name: "foo"], unless: &(&1[:name] != "foo"))
-        true
-
-    If the data does/doesn't match a list of conditions:
-
-        iex> Blueprint.Validator.validate?([name: "foo", state: "new"], if: [name: "foo", state: "new"])
-        true
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], if: [name: "foo", state: "new"])
-        false
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], if_any: [name: "foo", state: "new"])
-        true
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], if_any: [name: "bar", state: "new"])
-        false
-        iex> Blueprint.Validator.validate?([name: "foo", state: "new"], unless: [name: "foo", state: "new"])
-        false
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], unless: [name: "foo", state: "new"])
-        true
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], unless_any: [name: "foo", state: "new"])
-        false
-        iex> Blueprint.Validator.validate?([name: "foo", state: "persisted"], unless_any: [name: "bar", state: "new"])
-        true
-    """
     def validate?(data, options) when is_list(options) do
         cond do
             Keyword.has_key?(options, :if) ->

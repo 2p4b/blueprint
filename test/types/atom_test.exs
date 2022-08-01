@@ -5,18 +5,18 @@ defmodule AtomTest do
     test "atom, should cast atom value" do
         assert {:ok, :yes} = 
             :yes
-            |> Blueprint.Types.Atom.cast([])
+            |> Blueprint.Type.Atom.cast([])
 
         assert {:ok, :yes} = 
             "yes"
-            |> Blueprint.Types.Atom.cast([])
+            |> Blueprint.Type.Atom.cast([])
     end
 
     @tag :atom
     test "atom, should not cast invalid atom values" do
         assert {:error, _reason} = 
             UUID.uuid1()
-            |> Blueprint.Types.Atom.cast([])
+            |> Blueprint.Type.Atom.cast([])
     end
 
 end

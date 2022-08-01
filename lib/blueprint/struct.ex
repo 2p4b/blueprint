@@ -2,11 +2,11 @@ defmodule Blueprint.Struct do
 
     defmacro __using__(_) do
         quote do
-            import Blueprint.Struct, only: [blueprint: 1, blueprint: 2]
+            import Blueprint.Struct, only: [schema: 1, schema: 2]
         end
     end
 
-    defmacro blueprint(opts\\[], do: block) do
+    defmacro schema(opts\\[], do: block) do
         quote do
             Blueprint.Struct.__define__(
                 unquote(Macro.escape(block)),
@@ -119,7 +119,7 @@ defmodule Blueprint.Struct do
                 |> __cast__(opts)
             end
             def __cast__(attr, _opts) when is_map(attr) do
-                case Blueprint.Types.Map.cast(attr, fields: __fields__()) do
+                case Blueprint.Type.Map.cast(attr, fields: __fields__()) do
                     {:ok, data} ->
                         {:ok, struct(__MODULE__, data)}
 

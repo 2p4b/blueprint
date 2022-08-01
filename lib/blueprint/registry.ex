@@ -1,39 +1,39 @@
 defmodule Blueprint.Registry do
 
-    alias Blueprint.Types
-    alias Blueprint.Validators
+    alias Blueprint.Type
+    alias Blueprint.Validator
 
     @types [
-        any: Types.Any,
-        map: Types.Map,
-        enum: Types.Enum,
-        atom: Types.Atom,
-        uuid: Types.UUID,
-        tuple: Types.Tuple,
-        float: Types.Float,
-        array: Types.Array,
-        struct: Types.Struct,
-        number: Types.Number,
-        string: Types.String,
-        boolean: Types.Boolean,
-        integer: Types.Integer,
-        datetime: Types.Datetime,
+        any: Type.Any,
+        map: Type.Map,
+        enum: Type.Enum,
+        atom: Type.Atom,
+        uuid: Type.UUID,
+        tuple: Type.Tuple,
+        float: Type.Float,
+        array: Type.Array,
+        struct: Type.Struct,
+        number: Type.Number,
+        string: Type.String,
+        boolean: Type.Boolean,
+        integer: Type.Integer,
+        datetime: Type.Datetime,
     ]
 
     @validators [
-        inclusion: Validators.Inclusion,
-        exclusion: Validators.Exclusion,
-        required: Validators.Required,
-        length: Validators.Length,
-        format: Validators.Format,
-        number: Validators.Number,
-        fields: Validators.Fields,
-        struct: Validators.Struct,
-        uuid: Validators.UUID,
-        type: Validators.Type,
-        by: Validators.By,
-        tld: Validators.Tdl,
-        pattern: Validators.Pattern,
+        inclusion: Validator.Inclusion,
+        exclusion: Validator.Exclusion,
+        required: Validator.Required,
+        length: Validator.Length,
+        format: Validator.Format,
+        number: Validator.Number,
+        fields: Validator.Fields,
+        struct: Validator.Struct,
+        uuid: Validator.UUID,
+        type: Validator.Type,
+        by: Validator.By,
+        tld: Validator.Tld,
+        pattern: Validator.Pattern,
     ]
 
 

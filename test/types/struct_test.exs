@@ -4,7 +4,7 @@ defmodule StructTest do
     defmodule Nested do
         use Blueprint.Struct
         
-        blueprint do
+        schema do
             field :name, :string, presence: true
             field :value, :number
         end
@@ -18,7 +18,7 @@ defmodule StructTest do
             value:  [:number, required: false]
         ]
 
-        blueprint do
+        schema do
             field :map_type, :map,  fields: @mapping
             field :name, :string,   default: "my name"
             field :nested, Nested,  default: nil

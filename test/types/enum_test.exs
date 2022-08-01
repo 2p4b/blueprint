@@ -5,15 +5,15 @@ defmodule EnumTest do
     test "enum, should cast value" do
         assert {:ok, 2} = 
             "2"
-            |> Blueprint.Types.Enum.cast([2, 4, 6])
+            |> Blueprint.Type.Enum.cast([2, 4, 6])
 
         assert {:ok, :test} = 
             "test"
-            |> Blueprint.Types.Enum.cast([:test, :enum])
+            |> Blueprint.Type.Enum.cast([:test, :enum])
 
         assert {:ok, "enum"} = 
             :enum
-            |> Blueprint.Types.Enum.cast(["enum"])
+            |> Blueprint.Type.Enum.cast(["enum"])
 
     end
 
@@ -21,7 +21,7 @@ defmodule EnumTest do
     test "enum, should not cast invalid enum value" do
         assert {:error, _reason} = 
             "four"
-            |> Blueprint.Types.Enum.cast(["one", "two"])
+            |> Blueprint.Type.Enum.cast(["one", "two"])
     end
 
 end
