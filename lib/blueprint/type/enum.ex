@@ -1,9 +1,13 @@
 defmodule Blueprint.Type.Enum do
 
+    @behaviour Blueprint.Type.Behaviour
+    
+    @impl Blueprint.Type.Behaviour
     def cast(nil, _opts) do
         {:ok, nil}
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(value, types) when is_list(types) do
         try do
             types_map = 
@@ -27,10 +31,12 @@ defmodule Blueprint.Type.Enum do
         end
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(_value, _opts) do
         {:error, ["invalid enum value"]}
     end
 
+    @impl Blueprint.Type.Behaviour
     def dump(value, _opts \\ []) do
         {:ok, value}
     end

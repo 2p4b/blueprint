@@ -1,17 +1,23 @@
 defmodule Blueprint.Type.Map do
 
+    @behaviour Blueprint.Type.Behaviour
+    
+    @impl Blueprint.Type.Behaviour
     def cast(nil, _opts) do
         {:ok, nil}
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(value, fields) when is_map(value) and is_list(fields) do
         cast(value, Enum.into(fields, %{}))
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(data, %{fields: fields}=opts) when is_list(fields) do
         cast(data, %{opts | fields: Enum.into(fields, %{})})
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(data, %{fields: fields}) when is_map(data) and is_map(fields) do
         Map.keys(fields)
         |> Enum.reduce({:ok, %{}}, fn key, acc -> 
@@ -57,11 +63,13 @@ defmodule Blueprint.Type.Map do
         end)
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(data, _opts) when is_map(data) do
         {:ok, data}
     end
 
 
+    @impl Blueprint.Type.Behaviour
     def cast(_value, _opts) do
         {:error, ["invalid map"]}
     end
@@ -93,11 +101,13 @@ defmodule Blueprint.Type.Map do
         Map.fetch(data, key)
     end
 
+    @impl Blueprint.Type.Behaviour
     def dump(values, opts \\ []) 
     def dump(nil, _opts) do
         {:ok, nil}
     end
 
+    @impl Blueprint.Type.Behaviour
     def dump(values, opts) do
         case Keyword.fetch(opts, :fields) do
             {:ok, fields} ->

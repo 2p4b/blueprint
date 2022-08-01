@@ -1,13 +1,18 @@
 defmodule Blueprint.Type.Array do
 
+    @behaviour Blueprint.Type.Behaviour
+    
+    @impl Blueprint.Type.Behaviour
     def cast(nil, _opts) do
         {:ok, nil}
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(value, type) when is_list(value) and is_atom(type) do
         cast(value, type: type)
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(value, opts) when is_list(value) and is_list(opts) do
         {:ok, type} = Keyword.fetch(opts, :type)
 
@@ -24,6 +29,7 @@ defmodule Blueprint.Type.Array do
         |> cast_values(value, typeopts)
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(_value, _opts) do
         {:error, ["invalid list"]}
     end
@@ -48,10 +54,15 @@ defmodule Blueprint.Type.Array do
         end)
     end
 
+    @impl Blueprint.Type.Behaviour
     def dump(val, opts \\ [])
+
+    @impl Blueprint.Type.Behaviour
     def dump(nil, _opts) do
         {:ok, nil}
     end
+
+    @impl Blueprint.Type.Behaviour
     def dump(values, opts) do
         case Keyword.fetch(opts, :type) do
             {:ok, {typename, typeopts}} when is_atom(typename) ->

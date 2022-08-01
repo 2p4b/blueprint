@@ -15,14 +15,19 @@ defmodule Blueprint.Type.Datetime do
 
     @iso_format ~r/^\d{4}-\d{2}-\d{2}T\d{1,2}:\d{1,2}:\d{1,2}-\d{1,2}:\d{1,2}$/
 
+    @behaviour Blueprint.Type.Behaviour
+    
+    @impl Blueprint.Type.Behaviour
     def cast(nil, _opts) do
         {:ok, nil}
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(value, _opts) when is_number(value) do
         {:ok, Timex.from_unix(value)}
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(value, _opts) when is_binary(value) do
         dvalue = String.trim(value)
         cond do
@@ -40,18 +45,22 @@ defmodule Blueprint.Type.Datetime do
         end
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(%Date{}=value, _opts) do
         {:ok, value}
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(%DateTime{}=value, _opts) do
         {:ok, value}
     end
 
+    @impl Blueprint.Type.Behaviour
     def cast(_value, _opts) do
         {:error, ["invalid datetime"]}
     end
 
+    @impl Blueprint.Type.Behaviour
     def dump(value, _opts \\ []) do
         {:ok, value}
     end
