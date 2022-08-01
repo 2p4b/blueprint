@@ -66,10 +66,6 @@ defmodule Blueprint.Type.Map do
         {:error, ["invalid map"]}
     end
 
-    def dump(value, _opts \\ []) do
-        {:ok, value}
-    end
-
     def get_value(data, key) when is_map(data) and is_atom(key) do
         if Map.has_key?(data, key) do
             Map.fetch(data, key)
@@ -95,6 +91,46 @@ defmodule Blueprint.Type.Map do
 
     def get_value(data, key) when is_map(data) and is_atom(key) do
         Map.fetch(data, key)
+    end
+
+    def dump(values, opts \\ []) 
+    def dump(nil, _opts) do
+        {:ok, nil}
+    end
+
+    def dump(values, opts) do
+        case Keyword.fetch(opts, :fields) do
+            {:ok, fields} ->
+                fields
+                |> Enum.reduce_while({:ok, %{}}, fn {key, typeinfo}, acc -> 
+                    {typename, typeopts} =
+                        case typeinfo do
+                            {typename, typeopts} ->
+                                  {typename, typeopts}
+
+                            [typename | typeopts] when is_atom(typename) ->
+                                  {typename, typeopts}
+
+                            typename when is_atom(typename) ->
+                                  {typename, []}
+                        end
+
+                    {:ok, value} = get_value(values, key)
+                    type = Blueprint.Registry.type(typename)
+                    case type.dump(value, typeopts) do
+                        {:ok, val} ->
+                              {:ok, data} = acc
+                              keyname = String.Chars.to_string(key)
+                              {:cont, {:ok, Map.put(data, keyname, val)}}
+
+                        {:error, value} ->
+                              {:halt, {:error, [{key, value}]}}
+                    end
+                end)
+
+            _ ->
+              {:ok, values}
+        end
     end
 
 end

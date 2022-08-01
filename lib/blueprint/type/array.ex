@@ -1,9 +1,5 @@
 defmodule Blueprint.Type.Array do
 
-    def dump(value, _opts \\ []) do
-        {:ok, value}
-    end
-
     def cast(nil, _opts) do
         {:ok, nil}
     end
@@ -50,6 +46,32 @@ defmodule Blueprint.Type.Array do
                       error
             end
         end)
+    end
+
+    def dump(val, opts \\ [])
+    def dump(nil, _opts) do
+        {:ok, nil}
+    end
+    def dump(values, opts) do
+        case Keyword.fetch(opts, :type) do
+            {:ok, {typename, typeopts}} when is_atom(typename) ->
+                type = Blueprint.Registry.type(typename)
+                values
+                |> Enum.with_index()
+                |> Enum.reduce_while({:ok, []}, fn {val, index}, acc -> 
+                    {:ok, dumped} = acc
+                    case type.dump(val, typeopts) do
+                        {:ok, val} ->
+                              {:cont, {:ok, dumped ++ [val]}}
+
+                        {:error, value} ->
+                              {:halt, {:error, [{index, value}]}}
+                    end
+                end)
+
+            _ ->
+              {:ok, values}
+        end
     end
 
 end

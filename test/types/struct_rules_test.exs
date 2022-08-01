@@ -30,11 +30,20 @@ defmodule StructRulesTest do
             nested: nested, 
             many: List.wrap(many)
         }
+
         casted = Typed.new(typed)
 
         assert {:error, [{:struct, _}]} =
             casted
             |> Blueprint.validate()
+
+        {:ok, dumped} =
+            casted
+            |> Typed.dump()
+
+        assert {:ok, ^casted} =
+            dumped
+            |> Typed.cast()
 
     end
 

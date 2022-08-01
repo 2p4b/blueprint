@@ -105,12 +105,28 @@ defmodule Blueprint.Struct do
             end
 
             def cast(attr, opts \\ [])
+            def cast(nil, opts) do
+                {:ok, nil}
+            end
             def cast(attr, opts) do
                 __cast__(attr, opts)
             end
 
+
+            def dump(attr, opts \\ [])
+            def dump(nil, _opts) do
+                {:ok, nil}
+            end
+            def dump(%__MODULE__{}=attr, opts) do
+                __dump__(attr, opts)
+            end
+
             def __fields__() do
                 @bp_schema
+            end
+
+            def __dump__(data, opts \\ []) do
+                Blueprint.Type.Map.dump(data, fields: __fields__())
             end
 
             def __cast__(attr, opts) when is_list(attr) do
@@ -118,6 +134,7 @@ defmodule Blueprint.Struct do
                 |> Enum.into(%{})
                 |> __cast__(opts)
             end
+
             def __cast__(attr, _opts) when is_map(attr) do
                 case Blueprint.Type.Map.cast(attr, fields: __fields__()) do
                     {:ok, data} ->

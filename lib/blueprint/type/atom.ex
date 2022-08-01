@@ -1,9 +1,5 @@
 defmodule Blueprint.Type.Atom do
 
-    def cast(nil, _opts) do
-        {:ok, nil}
-    end
-
     def cast(value, _opts) when is_atom(value) do
         {:ok, value}
     end
@@ -21,8 +17,13 @@ defmodule Blueprint.Type.Atom do
         {:error, ["invalid atom"]}
     end
 
-    def dump(value, _opts \\ []) do
-        {:ok, value}
+    def dump(val, opts \\ [])
+    def dump(nil, _opts) do
+        {:ok, nil}
+    end
+
+    def dump(value, _opts) when is_atom(value) do
+        {:ok, String.Chars.to_string(value)}
     end
 
 end
