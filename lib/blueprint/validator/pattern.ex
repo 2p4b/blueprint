@@ -24,7 +24,3 @@ defmodule Blueprint.Validator.Pattern do
     end
 
 end
-
-
-
-

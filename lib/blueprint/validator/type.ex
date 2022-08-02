@@ -61,7 +61,3 @@ defmodule Blueprint.Validator.Type do
     end
 
 end
-
-
-
-

@@ -14,6 +14,3 @@ defmodule Blueprint.Type.Any do
 
 end
 
-
-
-

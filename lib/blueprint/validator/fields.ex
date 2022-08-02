@@ -20,6 +20,3 @@ defmodule Blueprint.Validator.Fields do
     end
 
 end
-
-
-

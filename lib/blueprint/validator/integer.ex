@@ -19,7 +19,3 @@ defmodule Blueprint.Validator.Integer do
     end
 
 end
-
-
-
-

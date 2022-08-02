@@ -39,8 +39,3 @@ defmodule Blueprint.Type.Struct do
     end
 
 end
-
-
-
-
-

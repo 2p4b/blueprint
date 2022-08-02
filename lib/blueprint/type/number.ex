@@ -40,4 +40,3 @@ defmodule Blueprint.Type.Number do
     end
 
 end
-

@@ -28,4 +28,3 @@ defmodule Blueprint.Type.Tuple do
     end
 
 end
-

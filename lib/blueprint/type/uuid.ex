@@ -29,5 +29,3 @@ defmodule Blueprint.Type.UUID do
     end
 
 end
-
-

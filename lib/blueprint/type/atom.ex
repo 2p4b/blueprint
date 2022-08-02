@@ -36,4 +36,3 @@ defmodule Blueprint.Type.Atom do
     end
 
 end
-

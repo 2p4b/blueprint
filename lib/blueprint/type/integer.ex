@@ -39,5 +39,3 @@ defmodule Blueprint.Type.Integer do
     end
 
 end
-
-

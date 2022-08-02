@@ -66,5 +66,3 @@ defmodule Blueprint.Type.Datetime do
     end
 
 end
-
-

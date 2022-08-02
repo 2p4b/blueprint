@@ -14,19 +14,23 @@ defmodule Blueprint.Type.Array do
 
     @impl Blueprint.Type.Behaviour
     def cast(value, opts) when is_list(value) and is_list(opts) do
-        {:ok, type} = Keyword.fetch(opts, :type)
+        case Keyword.fetch(opts, :type) do
+            {:ok, type} ->
+                {typename, typeopts} =
+                    case type do
+                        {typename, typeopts} ->
+                            {typename, typeopts}
 
-        {typename, typeopts} =
-            case type do
-                {typename, typeopts} ->
-                    {typename, typeopts}
+                        typename when is_atom(typename) ->
+                            {typename, []}
+                    end
 
-                typename when is_atom(typename) ->
-                    {typename, []}
-            end
+                Blueprint.Registry.type(typename) 
+                |> cast_values(value, typeopts)
 
-        Blueprint.Registry.type(typename) 
-        |> cast_values(value, typeopts)
+            _ ->
+              {:ok, value}
+        end
     end
 
     @impl Blueprint.Type.Behaviour
@@ -86,6 +90,3 @@ defmodule Blueprint.Type.Array do
     end
 
 end
-
-
-

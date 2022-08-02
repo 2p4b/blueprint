@@ -68,7 +68,6 @@ defmodule Blueprint.Type.Map do
         {:ok, data}
     end
 
-
     @impl Blueprint.Type.Behaviour
     def cast(_value, _opts) do
         {:error, ["invalid map"]}
@@ -144,4 +143,3 @@ defmodule Blueprint.Type.Map do
     end
 
 end
-

@@ -42,5 +42,3 @@ defmodule Blueprint.Type.Enum do
     end
 
 end
-
-

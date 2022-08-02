@@ -39,4 +39,3 @@ defmodule Blueprint.Type.Float do
     end
 
 end
-

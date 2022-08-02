@@ -13,4 +13,3 @@ defmodule Blueprint.Validator.Required do
         end
     end
 end
-

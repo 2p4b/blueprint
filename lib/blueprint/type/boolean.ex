@@ -32,5 +32,3 @@ defmodule Blueprint.Type.Boolean do
     end
 
 end
-
-

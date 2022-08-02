@@ -20,6 +20,3 @@ defmodule Blueprint.Validator.Float do
     end
 
 end
-
-
-
