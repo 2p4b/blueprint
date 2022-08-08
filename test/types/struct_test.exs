@@ -33,7 +33,7 @@ defmodule StructTest do
         cast_nested = %Nested{name: "when", value: 189}
 
         assert %Typed{
-            name: "", 
+            name: nil, 
             map_type: Map.from_struct(cast_nested),
             nested: cast_nested, 
             array_test: [cast_nested] 

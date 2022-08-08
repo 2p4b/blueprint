@@ -60,17 +60,21 @@ defmodule Blueprint do
 
                 validator = Blueprint.Registry.validator(name)
 
-                if validator do
-                    value = Map.get(data, key)
-                    case validator.validate(value, data, opts) do
-                        {:ok, _} ->
-                            {:cont, []}
+                exists = Map.has_key?(data, key)
 
-                        {:error, error} ->
-                            {:halt, [{key, error}]}
-                    end
-                else
-                    {:cont, []}
+                cond do
+                    exists and is_atom(validator) and not(is_nil(validator)) ->
+                        value = Map.get(data, key)
+                        case validator.validate(value, data, opts) do
+                            {:ok, _} ->
+                                {:cont, []}
+
+                            {:error, error} ->
+                                {:halt, [{key, error}]}
+                        end
+
+                    true ->
+                        {:cont, []}
                 end
             end)
         end)

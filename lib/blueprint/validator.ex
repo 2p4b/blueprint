@@ -55,7 +55,7 @@ defmodule Blueprint.Validator do
         defmacro unless_skipping(value, options, do: unskipped) do
             quote do
                 if skip?(unquote(value), unquote(options)) do
-                    :ok
+                    {:ok, unquote(value)}
                 else
                     unquote(unskipped)
                 end
