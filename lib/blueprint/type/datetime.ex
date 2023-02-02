@@ -9,11 +9,12 @@ defmodule Blueprint.Type.Datetime do
         iex> {:ok, _value} = Blueprint.Type.Datetime.cast("1900-01-01", [])
 
         iex> {:ok, _value} = Blueprint.Type.Datetime.cast("2016-02-29T22:25:00-06:00", [])
+        iex> {:ok, _value} = Blueprint.Type.Datetime.cast("2023-02-01T14:51:53.468132Z", [])
 
         iex> {:error, _reason} = Blueprint.Type.Datetime.cast("1900-91-91", [])
     """
 
-    @iso_format ~r/^\d{4}-\d{2}-\d{2}T\d{1,2}:\d{1,2}:\d{1,2}-\d{1,2}:\d{1,2}$/
+    @iso_format ~r/^\d{4}-\d{2}-\d{2}T\d{1,2}:\d{1,2}:\d{1,2}((-\d{1,2}:\d{1,2})|(\.\d+Z))$/
 
     @behaviour Blueprint.Type.Behaviour
     
