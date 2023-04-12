@@ -38,15 +38,20 @@ defmodule Blueprint.Registry do
 
 
     def type(name) do
-        if Keyword.has_key?(@types, name) do
-            Keyword.get(@types, name)
+        custom_types = Application.get_env(:types, Blueprint, [])
+        types = Keyword.merge(@types, custom_types)
+        if Keyword.has_key?(types, name) do
+            Keyword.get(types, name)
         else
             name
         end
     end
 
     def validator(name) when is_atom(name) do
-        Keyword.get(@validators, name)
+        custom_validators = Application.get_env(:validators, Blueprint, [])
+        @types
+        |> Keyword.merge(custom_validators)
+        |> Keyword.get(name)
     end
 
 end
