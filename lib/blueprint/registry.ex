@@ -49,7 +49,7 @@ defmodule Blueprint.Registry do
 
     def validator(name) when is_atom(name) do
         custom_validators = Application.get_env(:validators, Blueprint, [])
-        @types
+        @validators
         |> Keyword.merge(custom_validators)
         |> Keyword.get(name)
     end
