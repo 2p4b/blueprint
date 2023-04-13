@@ -92,7 +92,7 @@ defmodule Blueprint.Struct do
                 Kernel.apply(__MODULE__, :new, [Enum.into(attr, %{})])
             end
 
-            def from(strt, remap \\ []) when is_struct(strt) do
+            def from_struct(strt, remap \\ []) when is_struct(strt) do
                 params =
                     Enum.reduce(remap, Map.from_struct(strt), fn({nkey, okey}, acc) ->
                         with {:ok, value} <- Map.fetch(acc, okey) do
