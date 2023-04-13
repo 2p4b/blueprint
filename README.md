@@ -66,18 +66,18 @@ struct from map or list. Note: the new method will throw if
 validation of field type fails
 
 ```elixir
-    data = StructType.new(%{...})
+data = StructType.new(%{...})
 ```
 
 Blueprint defines a constructor `cast` method to struct but unlike
 the `new` method is returns the usual `{:ok, value}` or `{:error, reason}`
 
 ```elixir
-    {:ok, data} = StructType.cast(%{...})
+{:ok, data} = StructType.cast(%{...})
 ```
 
 ```elixir
-    {:error, reason} = StructType.cast(123)
+{:error, reason} = StructType.cast(123)
 ```
 
 Blueprint defines a constructor `from_struct` just like `new` but made to look like
@@ -85,14 +85,14 @@ the familiar `Map.from_struct` is uses the `new` method and will throw if
 validation fails
 
 ```elixir
-    data = StructType.from_struct(%StructType{...})
+data = StructType.from_struct(%StructType{...})
 ```
 
 Blueprint defines a `dump` method to dump the data to simple Map that can be easily 
 serializable
 
 ```elixir
-    {:ok, data} = StructType.dump(%StructType{...})
+{:ok, data} = StructType.dump(%StructType{...})
 ```
 
 ## Advanced usage
@@ -177,7 +177,8 @@ end
 - datetime
 
 #### map
-```
+
+```elixir
 defmodule Typed do
     use Blueprint.Struct
 
@@ -195,7 +196,8 @@ end
 ```
 
 #### nested types
-```
+
+```elixir
 defmodule Nested do
     use Blueprint.Struct
     
