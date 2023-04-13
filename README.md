@@ -9,7 +9,7 @@ inspired by the Ecto.Schema
 
 ### Setup
 
-To use TypedStruct in your project, add this to your Mix dependencies:
+To use Blueprint in your project, add this to your Mix dependencies:
 
 ```elixir
 {:blueprint, git: "https://github.com/mfoncho/blueprint.git"}
