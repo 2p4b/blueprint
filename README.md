@@ -277,6 +277,85 @@ end
 
 <!-- @moduledoc -->
 
+## Customization
+
+### Blueprint.Type
+Blueprint types all implement the `Blueprint.Type.Behaviour` defining a new type
+must implement this behaviour
+
+```elixir
+defmodule CustomInteger do
+    @behaviour Blueprint.Type.Behaviour
+
+    def cast(value, options) when is_integer(value) do
+        {:ok, value}
+    end
+
+    def cast(value, options) do
+        {:error, ["value must be integer"]}
+    end
+
+    def dump(data, options) do
+        {:ok, data}
+    end
+end
+```
+
+### Blueprint.Type
+Blueprint types all implement the `Blueprint.Type.Behaviour` defining a new type
+must implement this behaviour
+
+```elixir
+defmodule CustomValidator do
+    @behaviour Blueprint.Validator.Behaviour
+
+    # validate a value given a context and options 
+    # defined in field definition
+    def validate(value, context, options) do
+        {:ok, value}
+    end
+
+    # vaidate return error tuple when value
+    # value fails validation 
+    def validate(value, context, options) do
+        {:error, ["reason"]}
+    end
+
+end
+```
+
+
+Blueprint types and validators can be defined or overwritten using config
+
+```elixir
+config :types, Blueprint,
+    map: CustomMapImpl,
+    custom_integer: CustomInteger,
+    typename1: CustomType,
+    typename2: CustomTypeImpl2
+
+config :validators, Blueprint,
+    validatorname: CustomValidator,
+    seondvalidator: CustomSecondValidatorImpl
+```
+
+use custom types and validators with Blueprint
+
+```elixir
+defmodule CustomType do
+    use Blueprint.Struct
+
+    # Define your struct.
+    schema do
+        #Define a field with type string
+        field :name, :string, validatorname: [...opts]
+
+        #Define a field with custom integer type
+        field :age,  :custom_integer,   default: 10
+    end
+end
+```
+
 ### Thats all there is to blueprint
 
 
