@@ -301,7 +301,7 @@ defmodule CustomInteger do
 end
 ```
 
-### Blueprint.Type
+### Blueprint.Validator
 Blueprint types all implement the `Blueprint.Type.Behaviour` defining a new type
 must implement this behaviour
 
