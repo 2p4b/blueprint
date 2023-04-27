@@ -30,7 +30,7 @@ defmodule Blueprint.Struct do
 
             # Create a scope to avoid leaks.
             (fn ->
-                import Blueprint.Struct
+                import Blueprint.Struct, only: [field: 2, field: 3]
                 Module.eval_quoted(__ENV__, unquote(block))
             end).()
 
