@@ -8,7 +8,8 @@ defmodule Blueprint.Type.Enum do
     end
 
     @impl Blueprint.Type.Behaviour
-    def cast(value, types) when is_list(types) do
+    def cast(value, opts) when is_list(opts) do
+        types = Keyword.fetch!(opts, :values)
         try do
             types_map = 
                 types 

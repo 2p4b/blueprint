@@ -17,7 +17,7 @@ defmodule ArrayTest do
         test "array, should cast array enum value type" do
             assert {:ok, [1, :one, 1, :one, "two"]} = 
                 ["1", "one", 1, "one", "two"]
-                |> Blueprint.Type.Array.cast(type: {:enum, [1, :one, "two"]})
+                |> Blueprint.Type.Array.cast(type: {:enum, values: [1, :one, "two"]})
         end
 
         @tag :array
