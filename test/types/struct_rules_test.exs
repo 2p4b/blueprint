@@ -19,32 +19,34 @@ defmodule StructRulesTest do
 
     end
 
-    @tag :struct_rules
-    test "struct_rules, should cast nested maps" do
-        one = %{name: 122345, value: "138"}
-        many = %{name: 12, value: "138"}
-        nested = %{}
-        typed = %{
-            one: one, 
-            name: "sample@live.com", 
-            nested: nested, 
-            many: List.wrap(many)
-        }
+    describe "StructRules" do
+        @tag :struct_rules
+        test "struct_rules, should cast nested maps" do
+            one = %{name: 122345, value: "138"}
+            many = %{name: 12, value: "138"}
+            nested = %{}
+            typed = %{
+                one: one, 
+                name: "sample@live.com", 
+                nested: nested, 
+                many: List.wrap(many)
+            }
 
-        casted = Typed.new(typed)
+            casted = Typed.new(typed)
 
-        assert {:error, [{:struct, _}]} =
-            casted
-            |> Blueprint.validate()
+            assert {:error, [{:struct, _}]} =
+                casted
+                |> Blueprint.validate()
 
-        {:ok, dumped} =
-            casted
-            |> Typed.dump()
+            {:ok, dumped} =
+                casted
+                |> Typed.dump()
 
-        assert {:ok, ^casted} =
-            dumped
-            |> Typed.cast()
+            assert {:ok, ^casted} =
+                dumped
+                |> Typed.cast()
 
+        end
     end
 
 end
