@@ -21,19 +21,21 @@ defmodule Blueprint.Type.Map do
     def cast(data, %{fields: fields}) when is_map(data) and is_map(fields) do
         Map.keys(fields)
         |> Enum.reduce({:ok, %{}}, fn key, acc -> 
-            case get_value(data, key) do
+
+            {value_type, opts} = 
+                case Map.get(fields, key) do
+                    {type, opts} when is_atom(type) and is_list(opts) ->
+                            {type, opts}
+
+                    [type | opts] when is_atom(type) and is_list(opts) ->
+                            {type, opts}
+
+                    type when is_atom(type) ->
+                            {type, []}
+                end
+
+            case get_value(data, key, opts) do
                 {:ok, value} ->
-                    {value_type, opts} = 
-                        case Map.get(fields, key) do
-                            {type, opts} when is_atom(type) ->
-                                    {type, opts}
-
-                            [type | opts] when is_atom(type) and is_list(opts) ->
-                                    {type, opts}
-
-                            type when is_atom(type) ->
-                                    {type, []}
-                        end
 
                     type = Blueprint.Registry.type(value_type) 
 
@@ -73,16 +75,24 @@ defmodule Blueprint.Type.Map do
         {:error, ["invalid map"]}
     end
 
-    def get_value(data, key) when is_map(data) and is_atom(key) do
-        if Map.has_key?(data, key) do
-            Map.fetch(data, key)
-        else
-            string_key = Atom.to_string(key) 
-            Map.fetch(data, string_key)
+    def get_value(data, key, opts) when is_map(data) and is_atom(key) do
+        string_key = Atom.to_string(key) 
+        cond do
+            Map.has_key?(data, key) ->
+                Map.fetch(data, key)
+
+            Map.has_key?(data, string_key) ->
+                Map.fetch(data, string_key)
+
+            Keyword.has_key?(opts, :default) ->
+                Keyword.fetch(opts, :default)
+
+            true ->
+                {:error, :key}
         end
     end
 
-    def get_value(data, key) when is_map(data) and is_binary(key) do
+    def get_value(data, key, opts) when is_map(data) and is_binary(key) do
         if Map.has_key?(data, key) do
             Map.fetch(data, key)
         else
@@ -91,13 +101,13 @@ defmodule Blueprint.Type.Map do
                 Map.fetch(data, atom_key)
             rescue 
                 ArgumentError ->
-                    {:error, :key}
+                    if Keyword.has_key?(opts, :default) do
+                        Keyword.fetch(opts, :default)
+                    else
+                          {:error, :key}
+                    end
             end
         end
-    end
-
-    def get_value(data, key) when is_map(data) and is_atom(key) do
-        Map.fetch(data, key)
     end
 
     @impl Blueprint.Type.Behaviour
@@ -108,6 +118,7 @@ defmodule Blueprint.Type.Map do
 
     @impl Blueprint.Type.Behaviour
     def dump(values, opts) do
+
         case Keyword.fetch(opts, :fields) do
             {:ok, fields} ->
                 fields
@@ -124,7 +135,7 @@ defmodule Blueprint.Type.Map do
                                   {typename, []}
                         end
 
-                    {:ok, value} = get_value(values, key)
+                    {:ok, value} = get_value(values, key, typeopts)
                     type = Blueprint.Registry.type(typename)
                     case type.dump(value, typeopts) do
                         {:ok, val} ->
