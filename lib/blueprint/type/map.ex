@@ -135,7 +135,13 @@ defmodule Blueprint.Type.Map do
                                   {typename, []}
                         end
 
-                    {:ok, value} = get_value(values, key, typeopts)
+                    value = 
+                        case get_value(values, key, typeopts) do
+                            {:ok, value} ->
+                                  value
+                            {:error, :key} ->
+                                  nil
+                        end
                     type = Blueprint.Registry.type(typename)
                     case type.dump(value, typeopts) do
                         {:ok, val} ->

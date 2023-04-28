@@ -61,7 +61,7 @@ defmodule Blueprint do
                 validator = Blueprint.Registry.validator(name)
 
                 exists = Map.has_key?(data, key)
-
+                            
                 cond do
                     exists and is_atom(validator) and not(is_nil(validator)) ->
                         value = Map.get(data, key)
