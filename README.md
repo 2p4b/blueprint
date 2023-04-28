@@ -3,7 +3,7 @@
 <!-- @moduledoc -->
 
 Blueprint is a library for defining structs with types some degree of type checking.
-inspired by the Ecto.Schema
+inspired by the Ecto.Schema, only this time schemas can inherite from other schemas
 
 ## Usage
 
@@ -57,6 +57,92 @@ defmodule Typed do
         field :name,    :string,   default: "my name"
     end
 end
+```
+
+### Inheritance
+Blueprint structs can inherit fields from other schema, their types and validation rules, using the `:extends` option
+- `:extends`  Blurpint module or list of bluerint Modules for inheriting from muliple bases
+
+#### Inherit from single base
+```elixir
+defmodule Super do
+    use Blueprint.Struct
+    schema do
+        field :super, :number
+    end
+end
+
+defmodule Base do
+    schema extends: Super do
+        field :base, :number
+    end
+end
+
+defmodule Child do
+    use Blueprint.Struct
+    schema extends: Base do
+        field :child,  :number
+    end
+end
+
+%Child{super: 1, base: 2, child: 3}
+```
+
+#### Inherit from multiple base modules
+```elixir
+defmodule Super do
+    use Blueprint.Struct
+    schema do
+        field :super, :number
+    end
+end
+
+defmodule Base do
+    use Blueprint.Struct
+    schema do
+        field :base, :number
+    end
+end
+
+defmodule Child do
+    use Blueprint.Struct
+    schema extends: [Base, Super] do
+        field :child,  :number
+    end
+end
+
+%Child{super: 1, base: 2, child: 3}
+
+```
+
+Sometime users may wish to overwrite certain fields with custom rules or type, 
+this can be done with the `overwrite` field option
+
+#### overwrite field base definition
+```elixir
+defmodule Super do
+    use Blueprint.Struct
+    schema do
+        field :super, :number
+    end
+end
+
+defmodule Base do
+    use Blueprint.Struct
+    schema do
+        field :base, :number
+    end
+end
+
+defmodule Child do
+    use Blueprint.Struct
+    schema extends: [Base, Super] do
+        field :base, :string, overwrite: true
+    end
+end
+
+%Child{super: 1, base: "2", child: 3}
+
 ```
 
 ### Methods
