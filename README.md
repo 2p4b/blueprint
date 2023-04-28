@@ -61,7 +61,7 @@ end
 
 ### Inheritance
 Blueprint structs can inherit fields from other schema, their types and validation rules, using the `:extends` option
-- `:extends`  Blurpint module or list of bluerint Modules for inheriting from muliple bases
+- `:extends`  Blueprint module or list of blueprint modules for inheriting from muliple bases
 
 #### Inherit from single base
 ```elixir
@@ -89,6 +89,14 @@ end
 ```
 
 #### Inherit from multiple base modules
+when inheriting from multiple bases, the next module in the list always overwrites any previously defined fields 
+
+
+```elixir
+    schema extends: [Base, Super]
+```
+the module `Super` will overwrite any fields already defined in `Base`
+
 ```elixir
 defmodule Super do
     use Blueprint.Struct
