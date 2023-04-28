@@ -6,7 +6,27 @@ defmodule Blueprint.Struct do
         end
     end
 
-    defmacro schema(opts\\[], do: block) do
+    defmacro schema(do: block) do
+        opts = []
+        quote do
+            Blueprint.Struct.__define__(
+                unquote(Macro.escape(block)),
+                unquote(opts)
+            )
+        end
+    end
+
+    defmacro schema(opts) when is_list(opts) do
+        block = {:__block__, [], []}
+        quote do
+            Blueprint.Struct.__define__(
+                unquote(Macro.escape(block)),
+                unquote(opts)
+            )
+        end
+    end
+
+    defmacro schema(opts, do: block) when is_list(opts) do
         quote do
             Blueprint.Struct.__define__(
                 unquote(Macro.escape(block)),
@@ -27,6 +47,15 @@ defmodule Blueprint.Struct do
             Module.register_attribute(__MODULE__, :bp_enforce_keys, accumulate: true)
             Module.put_attribute(__MODULE__, :bp_enforce?, unquote(!!opts[:required]))
 
+            Module.put_attribute(__MODULE__, :bp_bases, unquote(opts) |> Keyword.get(:extends, []) |> List.wrap())
+
+            Enum.each(@bp_bases, fn base -> 
+                base
+                |> Kernel.apply(:__blueprint__, [])
+                |> Enum.each(fn {name, {type, opts, mod}} -> 
+                    Blueprint.Struct.__field__(__MODULE__, name, type, opts, mod, true)
+                end)
+            end)
 
             # Create a scope to avoid leaks.
             (fn ->
@@ -63,22 +92,7 @@ defmodule Blueprint.Struct do
 
             def new(attr \\ %{})
             def new(attr) when is_map(attr) do
-                result =
-                    Enum.reduce(@bp_str_keys, %{}, fn ({akey, skey}, acc) ->
-                        cond do
-                            Map.has_key?(attr, akey) ->
-                                Map.put(acc, akey, Map.get(attr, akey))
-
-                            Map.has_key?(attr, skey) ->
-                                Map.put(acc, akey, Map.get(attr, skey))
-
-                            true ->
-                                acc
-                        end
-                    end)
-                    |> cast([])
-
-                case result do
+                case cast(attr, []) do
                     {:ok, data} ->
                         data
 
@@ -121,12 +135,17 @@ defmodule Blueprint.Struct do
                 __dump__(attr, opts)
             end
 
-            def __fields__() do
+            def __blueprint__() do
                 @bp_schema
             end
 
             def __dump__(data, opts \\ []) do
                 Blueprint.Type.Map.dump(data, fields: __fields__())
+            end
+
+            def __fields__ do
+                __blueprint__()
+                |> Enum.map(fn {name, {type, opts, _info}} -> {name, {type, opts}} end)
             end
 
             def __cast__(attr, opts) when is_list(attr) do
@@ -136,6 +155,20 @@ defmodule Blueprint.Struct do
             end
 
             def __cast__(attr, _opts) when is_map(attr) do
+                attr =
+                    Enum.reduce(@bp_str_keys, %{}, fn ({akey, skey}, acc) ->
+                        cond do
+                            Map.has_key?(attr, akey) ->
+                                Map.put(acc, akey, Map.get(attr, akey))
+
+                            Map.has_key?(attr, skey) ->
+                                Map.put(acc, akey, Map.get(attr, skey))
+
+                            true ->
+                                acc
+                        end
+                    end)
+
                 case Blueprint.Type.Map.cast(attr, fields: __fields__()) do
                     {:ok, data} ->
                         {:ok, struct(__MODULE__, data)}
@@ -167,15 +200,38 @@ defmodule Blueprint.Struct do
                 __MODULE__,
                 unquote(name),
                 unquote(type),
-                unquote(opts)
+                unquote(opts),
+                __MODULE__,
+                false
             )
         end
     end
 
     @doc false
-    def __field__(mod, name, type, opts) when is_atom(name) do
-        if mod |> Module.get_attribute(:bp_fields) |> Keyword.has_key?(name) do
-            raise ArgumentError, "the field #{inspect(name)} is already set"
+    def __field__(mod, name, type, opts, dmod, overwrite) when is_atom(name) do
+
+        if overwrite do
+            if Module.get_attribute(mod, :bp_schema) |> Keyword.get(name) do
+                # overwite inheritance field
+                __undefine__(mod, name)
+            end
+        else
+            if fdef = Module.get_attribute(mod, :bp_schema) |> Keyword.get(name) do
+                defpath = elem(fdef, 2)
+                inheritance_path =
+                      defpath
+                      |> Enum.map(&Kernel.inspect/1)
+                      |> Enum.join(" > ")
+
+                if  !!opts[:overwrite] and List.wrap(mod) !== defpath do
+                    __undefine__(mod, name)
+                else
+                    message = """
+                    duplicate field #{inspect(name)} already defined in #{inheritance_path}
+                    """
+                    raise KeyError, message
+                end
+            end
         end
 
         has_default? = Keyword.has_key?(opts, :default)
@@ -203,20 +259,58 @@ defmodule Blueprint.Struct do
                 !has_default? && !enforce?
             end
 
+        opts = 
+            if enforce? and not(has_default?) do
+                Keyword.put(opts, :required, :true)
+            else
+                opts
+            end
+            |> clean_opts()
 
-        rules  = rules_for(type, opts)
+        defpath = 
+            if mod === dmod do 
+                List.wrap(mod) 
+            else
+                List.wrap(mod) ++ List.wrap(dmod)
+            end
 
-        Module.put_attribute(mod, :bp_schema, {name, {type, rules}})
 
         Module.put_attribute(mod, :bp_keys, name)
-        Module.put_attribute(mod, :bp_rules, {name, clean_rules(rules, nullable?)})
+        Module.put_attribute(mod, :bp_rules, {name, opts})
         Module.put_attribute(mod, :bp_fields, {name, opts[:default]})
+        Module.put_attribute(mod, :bp_schema, {name, {type, opts, defpath}})
         Module.put_attribute(mod, :bp_types, {name, type_for(type, nullable?)})
-
         if enforce? do
             Module.put_attribute(mod, :bp_enforce_keys, name)
         end
+    end
 
+    def __undefine__(mod, name) do
+        delete_attribute_key(mod, :bp_schema, name)
+        delete_attribute_key(mod, :bp_fields, name)
+        delete_attribute_key(mod, :bp_rules, name)
+        delete_attribute_key(mod, :bp_types, name)
+
+        remove_attribute_value(mod, :bp_keys, name)
+        remove_attribute_value(mod, :bp_enforece_keys, name)
+    end
+
+    def delete_attribute_key(mod, attribute, key) do
+        values = Module.get_attribute(mod, attribute, []) |> Keyword.delete(key)
+        reset_attribute_values(mod, attribute, values)
+    end
+
+    def remove_attribute_value(mod, attribute, key) do
+        values = Module.get_attribute(mod, attribute, []) -- List.wrap(key)
+        reset_attribute_values(mod, attribute, values)
+    end
+
+    def reset_attribute_values(mod, attribute, values) do
+        Module.delete_attribute(mod, attribute)
+        Module.register_attribute(mod, attribute, accumulate: true)
+        Enum.each(values, fn value -> 
+            Module.put_attribute(mod, attribute, value)
+        end)
     end
 
     def __field__(_mod, name, _type, _opts) do
@@ -228,26 +322,10 @@ defmodule Blueprint.Struct do
 
     defp type_for(type, _), do: quote(do: unquote(type) | nil)
 
-    defp rules_for({:map, typeopts}, opts) do
-        typeopts
-        |> Enum.map(fn 
-            {type, []} -> {type, []}
-            {type, [_| valopts]} -> {type, valopts}
-        end) 
-        |> Enum.concat(opts)
-    end
-
-    defp rules_for(_, opts), do: opts
-
-    defp clean_rules(opts, nullable) when is_list(opts) do
+    defp clean_opts(opts) when is_list(opts) do
         opts
-        |> Keyword.delete(:default)
-        |> Keyword.delete(:required) 
         |> Keyword.delete(:nullable)
-        |> Keyword.put(:required, !nullable)
+        |> Keyword.delete(:overwrite) 
     end
 
-    defp clean_rules(opts, _nullable) do
-        opts
-    end
 end
