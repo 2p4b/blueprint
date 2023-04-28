@@ -8,10 +8,10 @@ defmodule Blueprint.Registry do
         map: Type.Map,
         enum: Type.Enum,
         atom: Type.Atom,
+        list: Type.List,
         uuid: Type.UUID,
         tuple: Type.Tuple,
         float: Type.Float,
-        array: Type.Array,
         struct: Type.Struct,
         number: Type.Number,
         string: Type.String,
@@ -43,7 +43,14 @@ defmodule Blueprint.Registry do
         if Keyword.has_key?(types, name) do
             Keyword.get(types, name)
         else
-            name
+            name_is_type? =
+              function_exported?(name, :cast, 2) and function_exported?(name, :dump, 2)
+
+            if name_is_type? do
+                name
+            else
+                raise RuntimeError, message: "#{inspect(name)} is not a valid bluprint type"
+            end
         end
     end
 

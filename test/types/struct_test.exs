@@ -22,7 +22,7 @@ defmodule StructTest do
             field :map_type, :map,  fields: @mapping
             field :name, :string,   default: "my name"
             field :nested, Nested,  default: nil
-            field :array_test, :array, type: Nested,  default: []
+            field :array_test, :list, type: Nested,  default: []
         end
 
     end

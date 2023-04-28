@@ -1,4 +1,4 @@
-defmodule Blueprint.Type.Array do
+defmodule Blueprint.Type.List do
 
     @behaviour Blueprint.Type.Behaviour
     

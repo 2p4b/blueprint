@@ -14,7 +14,7 @@ defmodule StructRulesTest do
             field :one,     :map,     fields: @mapping
             field :nested,  Typed,    required: true
             field :struct,  Typed,    struct: Typed
-            field :many,    :array,   type: {:map, fields: @mapping}
+            field :many,    :list,    type: {:map, fields: @mapping}
         end
 
     end
