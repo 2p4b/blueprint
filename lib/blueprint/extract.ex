@@ -6,7 +6,7 @@ defprotocol Blueprint.Extract do
     def attribute(data, name)
 end
 
-defmodule Blueprint.Extract.Struct do
+defmodule Blueprint.Extract.Schema do
     defmacro for_struct(opts) do
         quote do
             with opts <- unquote(opts) do

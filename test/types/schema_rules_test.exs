@@ -1,8 +1,8 @@
-defmodule StructRulesTest do
+defmodule SchemaRulesTest do
     use ExUnit.Case
 
     defmodule Typed do
-        use Blueprint.Struct
+        use Blueprint.Schema
 
         @mapping [
             name:   [:string, length: [min: 2, max: 10]],
@@ -19,9 +19,9 @@ defmodule StructRulesTest do
 
     end
 
-    describe "StructRules" do
-        @tag :struct_rules
-        test "struct_rules, should cast nested maps" do
+    describe "SchemaRules" do
+        @tag :schema_rules
+        test "schema_rules, should cast nested maps" do
             one = %{name: 122345, value: "138"}
             many = %{name: 12, value: "138"}
             nested = %{}

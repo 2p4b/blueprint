@@ -2,21 +2,21 @@ defmodule InheirtanceTest do
     use ExUnit.Case
 
     defmodule Super do
-        use Blueprint.Struct
+        use Blueprint.Schema
         schema required: true do
             field :value, :number, default: 1
         end
     end
 
     defmodule Base do
-        use Blueprint.Struct
+        use Blueprint.Schema
         schema extends: Super do
             field :name, :string, default: "name"
         end
     end
 
     defmodule Child do
-        use Blueprint.Struct
+        use Blueprint.Schema
         schema extends: [Base, Super]
     end
 

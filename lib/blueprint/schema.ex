@@ -1,15 +1,15 @@
-defmodule Blueprint.Struct do
+defmodule Blueprint.Schema do
 
     defmacro __using__(_) do
         quote do
-            import Blueprint.Struct, only: [schema: 1, schema: 2]
+            import Blueprint.Schema, only: [schema: 1, schema: 2]
         end
     end
 
     defmacro schema(do: block) do
         opts = []
         quote do
-            Blueprint.Struct.__define__(
+            Blueprint.Schema.__define__(
                 unquote(Macro.escape(block)),
                 unquote(opts)
             )
@@ -19,7 +19,7 @@ defmodule Blueprint.Struct do
     defmacro schema(opts) when is_list(opts) do
         block = {:__block__, [], []}
         quote do
-            Blueprint.Struct.__define__(
+            Blueprint.Schema.__define__(
                 unquote(Macro.escape(block)),
                 unquote(opts)
             )
@@ -28,7 +28,7 @@ defmodule Blueprint.Struct do
 
     defmacro schema(opts, do: block) when is_list(opts) do
         quote do
-            Blueprint.Struct.__define__(
+            Blueprint.Schema.__define__(
                 unquote(Macro.escape(block)),
                 unquote(opts)
             )
@@ -53,24 +53,24 @@ defmodule Blueprint.Struct do
                 base
                 |> Kernel.apply(:__blueprint__, [])
                 |> Enum.each(fn {name, {type, opts, mod}} -> 
-                    Blueprint.Struct.__field__(__MODULE__, name, type, opts, mod, true)
+                    Blueprint.Schema.__field__(__MODULE__, name, type, opts, mod, true)
                 end)
             end)
 
             # Create a scope to avoid leaks.
             (fn ->
-                import Blueprint.Struct, only: [field: 2, field: 3]
+                import Blueprint.Schema, only: [field: 2, field: 3]
                 Module.eval_quoted(__ENV__, unquote(block))
             end).()
 
             @enforce_keys @bp_enforce_keys
             defstruct @bp_fields
 
-            require Blueprint.Extract.Struct
-            Blueprint.Extract.Struct.for_struct(@bp_rules)
-            Blueprint.Struct.__type__(@bp_specs)
+            require Blueprint.Extract.Schema
+            Blueprint.Extract.Schema.for_struct(@bp_rules)
+            Blueprint.Schema.__type__(@bp_specs)
 
-            Blueprint.Struct.__contructor__(@bp_keys)
+            Blueprint.Schema.__contructor__(@bp_keys)
 
             Module.delete_attribute(__MODULE__, :bp_enforce_keys)
             Module.delete_attribute(__MODULE__, :bp_enforce?)
@@ -189,7 +189,7 @@ defmodule Blueprint.Struct do
 
     defmacro field(name, type, opts \\ []) do
         quote do
-            Blueprint.Struct.__field__(
+            Blueprint.Schema.__field__(
                 __MODULE__,
                 unquote(name),
                 unquote(type),

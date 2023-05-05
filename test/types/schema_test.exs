@@ -1,8 +1,8 @@
-defmodule StructTest do
+defmodule SchemaTest do
     use ExUnit.Case
 
     defmodule Nested do
-        use Blueprint.Struct
+        use Blueprint.Schema
         
         schema do
             field :name, :string, presence: true
@@ -11,7 +11,7 @@ defmodule StructTest do
     end
 
     defmodule Typed do
-        use Blueprint.Struct
+        use Blueprint.Schema
 
         @mapping [
             name:   [:string, length: [min: 5, max: 10]],
@@ -27,7 +27,7 @@ defmodule StructTest do
 
     end
 
-    describe "Struct" do
+    describe "Schema" do
         @tag :struct
         test "struct, should cast struct" do
             nested = %{name: "when", value: "189"}
