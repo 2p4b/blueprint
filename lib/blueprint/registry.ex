@@ -36,21 +36,25 @@ defmodule Blueprint.Registry do
         pattern: Validator.Pattern,
     ]
 
+    def types do
+        custom_types = Application.get_env(:types, Blueprint, [])
+        Keyword.merge(@types, custom_types)
+    end
 
     def type(name) do
-        custom_types = Application.get_env(:types, Blueprint, [])
-        types = Keyword.merge(@types, custom_types)
-        if Keyword.has_key?(types, name) do
-            Keyword.get(types, name)
+        with {:ok, type} <- Keyword.fetch(types(), name) do
+            type
         else
-            name_is_type? =
-              function_exported?(name, :cast, 2) and function_exported?(name, :dump, 2)
+            _ ->
+              name_is_type? =
+                function_exported?(name, :cast, 2) and function_exported?(name, :dump, 2)
 
-            if name_is_type? do
-                name
-            else
-                raise RuntimeError, message: "#{inspect(name)} is not a valid bluprint type"
-            end
+              if name_is_type? do
+                  name
+              else
+                  message = "#{inspect(name)} is not a valid blueprint type"
+                  raise RuntimeError, message: message
+              end
         end
     end
 

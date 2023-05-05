@@ -40,8 +40,8 @@ defmodule Blueprint.Struct do
         quote do
             Module.register_attribute(__MODULE__, :bp_keys, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_rules, accumulate: true)
-            Module.register_attribute(__MODULE__, :bp_types, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_typed, accumulate: true)
+            Module.register_attribute(__MODULE__, :bp_specs, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_fields, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_schema, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_enforce_keys, accumulate: true)
@@ -68,8 +68,7 @@ defmodule Blueprint.Struct do
 
             require Blueprint.Extract.Struct
             Blueprint.Extract.Struct.for_struct(@bp_rules)
-
-            Blueprint.Struct.__type__(@bp_types, unquote(opts))
+            Blueprint.Struct.__type__(@bp_specs)
 
             Blueprint.Struct.__contructor__(@bp_keys)
 
@@ -77,7 +76,7 @@ defmodule Blueprint.Struct do
             Module.delete_attribute(__MODULE__, :bp_enforce?)
             Module.delete_attribute(__MODULE__, :bp_fields)
             Module.delete_attribute(__MODULE__, :bp_rules)
-            Module.delete_attribute(__MODULE__, :bp_types)
+            Module.delete_attribute(__MODULE__, :bp_specs)
             Module.delete_attribute(__MODULE__, :bp_keys)
         end
     end
@@ -182,15 +181,9 @@ defmodule Blueprint.Struct do
         end
     end
 
-    defmacro __type__(types, opts) do
-        if Keyword.get(opts, :opaque, false) do
-            quote bind_quoted: [types: types] do
-                @opaque t() :: %__MODULE__{unquote_splicing(types)}
-            end
-        else
-            quote bind_quoted: [types: types] do
-                @type t() :: %__MODULE__{unquote_splicing(types)}
-            end
+    defmacro __type__(types) do
+        quote bind_quoted: [types: types] do
+            @type t() :: %__MODULE__{unquote_splicing(types)}
         end
     end
 
@@ -227,7 +220,8 @@ defmodule Blueprint.Struct do
                     __undefine__(mod, name)
                 else
                     message = """
-                    duplicate field #{inspect(name)} already defined in #{inheritance_path}
+                    duplicate field #{inspect(name)} 
+                    already defined in #{inheritance_path}
                     """
                     raise KeyError, message
                 end
@@ -274,12 +268,30 @@ defmodule Blueprint.Struct do
                 List.wrap(mod) ++ List.wrap(dmod)
             end
 
+        spec = 
+            case Keyword.fetch(opts, :spec) do
+                {:ok, spec} ->
+                    if nullable? do
+                        quote(do: unquote(spec)() | nil)
+                    else
+                        quote(do: unquote(spec)())
+                    end
+                _ ->
+                    registered_types = Blueprint.Registry.types()
+                    with {:ok, def_type} <- Keyword.fetch(registered_types, type) do
+                        def_type
+                    else
+                        _ ->
+                           type
+                    end
+                    |> type_spec(nullable?)
+            end
 
         Module.put_attribute(mod, :bp_keys, name)
         Module.put_attribute(mod, :bp_rules, {name, opts})
+        Module.put_attribute(mod, :bp_specs, {name, spec})
         Module.put_attribute(mod, :bp_fields, {name, opts[:default]})
         Module.put_attribute(mod, :bp_schema, {name, {type, opts, defpath}})
-        Module.put_attribute(mod, :bp_types, {name, type_for(type, nullable?)})
         if enforce? do
             Module.put_attribute(mod, :bp_enforce_keys, name)
         end
@@ -289,7 +301,7 @@ defmodule Blueprint.Struct do
         delete_attribute_key(mod, :bp_schema, name)
         delete_attribute_key(mod, :bp_fields, name)
         delete_attribute_key(mod, :bp_rules, name)
-        delete_attribute_key(mod, :bp_types, name)
+        delete_attribute_key(mod, :bp_specs, name)
 
         remove_attribute_value(mod, :bp_keys, name)
         remove_attribute_value(mod, :bp_enforece_keys, name)
@@ -318,9 +330,9 @@ defmodule Blueprint.Struct do
     end
 
     # Makes the type nullable if the key is not enforced.
-    defp type_for(type, false), do: type
+    defp type_spec(type, false), do: quote(do: unquote(type).t())
 
-    defp type_for(type, _), do: quote(do: unquote(type) | nil)
+    defp type_spec(type, _), do: quote(do: unquote(type).t() | nil)
 
     defp clean_opts(opts) when is_list(opts) do
         opts

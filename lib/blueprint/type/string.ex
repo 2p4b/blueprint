@@ -1,7 +1,7 @@
 defmodule Blueprint.Type.String do
 
     @behaviour Blueprint.Type.Behaviour
-    
+
     @impl Blueprint.Type.Behaviour
     def cast([], _opts) do
         {:error, ["invalid string"]}

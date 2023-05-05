@@ -1,7 +1,7 @@
 defmodule Blueprint.Type.UUID do
 
     @behaviour Blueprint.Type.Behaviour
-    
+
     @impl Blueprint.Type.Behaviour
     def cast(nil, _opts) do
         {:ok, nil}

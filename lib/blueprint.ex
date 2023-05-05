@@ -2,7 +2,6 @@ defmodule Blueprint do
     @moduledoc """
     Data Validation for Elixir.
     """
-
     alias Blueprint.Extract
 
     def valid?(data) when is_struct(data) do
