@@ -96,7 +96,13 @@ defmodule Blueprint.Schema do
                         data
 
                     {:error, error} ->
-                        raise ArgumentError, message: inspect(error)
+                        message = 
+                              if is_binary(error) do
+                                  error
+                              else
+                                  inspect(error)
+                              end
+                        raise ArgumentError, message: message
                 end
             end
 
@@ -168,12 +174,20 @@ defmodule Blueprint.Schema do
                         end
                     end)
 
-                case Blueprint.Type.Map.cast(attr, fields: __fields__()) do
-                    {:ok, data} ->
-                        {:ok, struct(__MODULE__, data)}
+                with {:ok, attr} <- Blueprint.validate_required(attr, @bp_enforce_keys) do
+                    case Blueprint.Type.Map.cast(attr, fields: __fields__()) do
+                        {:ok, data} ->
+                            {:ok, struct(__MODULE__, data)}
 
-                    error ->
-                        error
+                        error ->
+                            error
+                    end
+                else 
+                    {:error, notfound} ->
+                        message = """key #{inspect(notfound)} is required when building struct #{inspect(__MODULE__)}
+                        the following keys must be given #{inspect(@bp_enforce_keys)}
+                        """
+                        {:error, message}
                 end
             end
 
@@ -304,7 +318,7 @@ defmodule Blueprint.Schema do
         delete_attribute_key(mod, :bp_specs, name)
 
         remove_attribute_value(mod, :bp_keys, name)
-        remove_attribute_value(mod, :bp_enforece_keys, name)
+        remove_attribute_value(mod, :bp_enforce_keys, name)
     end
 
     def delete_attribute_key(mod, attribute, key) do
@@ -326,7 +340,7 @@ defmodule Blueprint.Schema do
     end
 
     def __field__(_mod, name, _type, _opts) do
-        raise ArgumentError, "a field name must be an atom, got #{inspect(name)}"
+        raise ArgumentError, "field name must be an atom, got #{inspect(name)}"
     end
 
     # Makes the type nullable if the key is not enforced.

@@ -80,5 +80,27 @@ defmodule Blueprint do
         |> List.flatten()
     end
 
+    def validate_required(attr, required)
+    def validate_required(attr, required) when is_list(attr) do
+        attr
+        |> Enum.into(%{})
+        |> validate_required(required)
+    end
+    def validate_required(attr, required) when is_map(required) do
+        validate_required(attr, Map.to_litst(required))
+    end
+    def validate_required(attr, required) when is_map(attr) and is_list(required) do
+        notfound =
+            Enum.find(required, fn key -> 
+                attr
+                |> Map.has_key?(key)
+                |> Kernel.not()
+            end) 
+        if is_nil(notfound) do
+            {:ok, attr}
+        else
+            {:error, notfound}
+        end
+    end
 
 end
