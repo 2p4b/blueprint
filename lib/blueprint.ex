@@ -87,7 +87,7 @@ defmodule Blueprint do
         |> validate_required(required)
     end
     def validate_required(attr, required) when is_map(required) do
-        validate_required(attr, Map.to_litst(required))
+        validate_required(attr, Map.to_list(required))
     end
     def validate_required(attr, required) when is_map(attr) and is_list(required) do
         notfound =

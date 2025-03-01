@@ -12,7 +12,7 @@ defmodule SchemaRulesTest do
         schema do
             field :name,    :string,  length: [min: 2, max: 20], pattern: :email
             field :one,     :map,     fields: @mapping
-            field :nested,  Typed,    required: true
+            field :nested,  Typed,    required: false
             field :struct,  Typed,    struct: Typed
             field :many,    :list,    type: {:map, fields: @mapping}
         end

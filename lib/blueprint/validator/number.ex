@@ -176,7 +176,7 @@ defmodule Blueprint.Validator.Number do
             Enum.reduce_while(options, :ok, fn
                 {k, o}, _ when k in @option_keys ->
                     case do_validate(value, k, o) do
-                        :ok ->
+                        {:ok, _val} ->
                             {:cont, :ok}
 
                         {:error, default_message} ->

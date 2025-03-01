@@ -184,7 +184,8 @@ defmodule Blueprint.Schema do
                     end
                 else 
                     {:error, notfound} ->
-                        message = """key #{inspect(notfound)} is required when building struct #{inspect(__MODULE__)}
+                        message = """
+                        key #{inspect(notfound)} is required when building struct #{inspect(__MODULE__)}
                         the following keys must be given #{inspect(@bp_enforce_keys)}
                         """
                         {:error, message}
