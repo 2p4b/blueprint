@@ -12,7 +12,7 @@ inspired by the Ecto.Schema, only this time schemas can inherit from other schem
 To use Blueprint in your project, add this to your Mix dependencies:
 
 ```elixir
-{:blueprint, git: "https://github.com/mfoncho/blueprint.git"}
+{:blueprint, git: "https://github.com/2p4b/blueprint.git"}
 ```
 
 
