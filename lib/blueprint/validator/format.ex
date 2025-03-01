@@ -46,7 +46,7 @@ defmodule Blueprint.Validator.Format do
     end
 
     def validate(value, format) do
-        if Regex.regex?(format), do: validate(value, with: format)
+        if Kernel.is_struct(format, Regex), do: validate(value, with: format)
     end
 
     defp result(true, value, _), do: {:ok, value}
