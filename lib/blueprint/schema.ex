@@ -60,7 +60,7 @@ defmodule Blueprint.Schema do
             # Create a scope to avoid leaks.
             (fn ->
                 import Blueprint.Schema, only: [field: 2, field: 3]
-                Module.eval_quoted(__ENV__, unquote(block))
+                Code.eval_quoted(unquote(block), [], __ENV__)
             end).()
 
             @enforce_keys @bp_enforce_keys

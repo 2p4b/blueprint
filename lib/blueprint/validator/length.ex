@@ -88,7 +88,7 @@ defmodule Blueprint.Validator.Length do
         max: "Maximum acceptable value"
     ]
     def validate(value, options) when is_integer(options), do: validate(value, is: options)
-    def validate(value, min..max//_), do: validate(value, in: min..max)
+    def validate(value, min..max//-1), do: validate(value, in: min..max)
 
     def validate(value, options) when is_list(options) do
         unless_skipping(value, options) do
