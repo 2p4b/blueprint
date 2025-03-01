@@ -131,7 +131,6 @@ defmodule Blueprint.Schema do
                 __cast__(attr, opts)
             end
 
-
             def dump(attr, opts \\ [])
             def dump(nil, _opts) do
                 {:ok, nil}
