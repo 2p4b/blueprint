@@ -1,13 +1,13 @@
 defmodule MapTest do
     use ExUnit.Case
 
-    describe "Blueprint.Type.Map" do
+    describe "Draft.Type.Map" do
         @tag :map
         test "map, should cast map field values" do
             fields = [one: :number, two: :float, valid: :boolean]
             assert {:ok, %{one: 1, valid: true, two: 3.14}} = 
                 %{one: 1, valid: "true", two: "3.14"}
-                |> Blueprint.Type.Map.cast(fields: fields)
+                |> Draft.Type.Map.cast(fields: fields)
         end
 
         @tag :map
@@ -37,7 +37,7 @@ defmodule MapTest do
 
             assert {:ok, ^valid} = 
                 data
-                |> Blueprint.Type.Map.cast(fields: schema)
+                |> Draft.Type.Map.cast(fields: schema)
         end
 
         @tag :map
@@ -45,7 +45,7 @@ defmodule MapTest do
             fields = [one: :number, two: :float, valid: :boolean] 
             assert {:ok, %{one: 1, valid: true, two: 3.14}} = 
                 %{"one" => 1, "valid" => "true", "two" => "3.14"}
-                |> Blueprint.Type.Map.cast(fields: fields)
+                |> Draft.Type.Map.cast(fields: fields)
         end
 
         @tag :map
@@ -53,7 +53,7 @@ defmodule MapTest do
             fields = [one: :number, two: :integer, valid: :boolean]
             assert {:error, errors} = 
                 %{"one" => 1, "valid" => "invalid", "two" => "3.14"}
-                |> Blueprint.Type.Map.cast(fields: fields)
+                |> Draft.Type.Map.cast(fields: fields)
 
             assert %{valid: _, two: _} = Enum.into(errors, %{})
         end

@@ -1,15 +1,15 @@
-defmodule Blueprint.MixProject do
+defmodule Draft.MixProject do
     use Mix.Project
 
     def project do
         [
-            app: :blueprint,
+            app: :draft,
             version: "0.1.0",
             elixir: "~> 1.14",
             start_permanent: Mix.env() == :prod,
             consolidate_protocols: Mix.env() != :test,
             deps: deps(),
-            name: "Blueprint",
+            name: "Draft",
             package: package(),
             description: description(),
             source_url: "https://github.com/2p4b/blueprint"
@@ -35,13 +35,13 @@ defmodule Blueprint.MixProject do
 
     
     defp description() do
-        "Blueprint is a library for creating structs with type checking"
+        "Draft is a library for creating structs with type checking"
     end
 
     defp package() do
       [
           # This option is only needed when you don't want to use the OTP application name
-          name: "blueprint",
+          name: "draft",
           # These are the default files included in the package
           files: ~w(lib mix.exs README.md),
           maintainers: ["Che Mfoncho"],

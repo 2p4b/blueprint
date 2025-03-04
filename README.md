@@ -1,18 +1,18 @@
-# Blueprint
+# Draft
 
 <!-- @moduledoc -->
 
-Blueprint is a library for defining structs with types some degree of type checking.
+Draft is a library for defining structs with types some degree of type checking.
 inspired by the Ecto.Schema, only this time schemas can inherit from other schemas
 
 ## Usage
 
 ### Setup
 
-To use Blueprint in your project, add this to your Mix dependencies:
+To use Draft in your project, add this to your Mix dependencies:
 
 ```elixir
-{:blueprint, git: "https://github.com/2p4b/blueprint.git"}
+{:draft, "~> 0.1.0"},
 ```
 
 
@@ -22,7 +22,7 @@ To define a Simple blueprint struct
 
 ```elixir
 defmodule StructType do
-    use Blueprint.Struct
+    use Draft.Struct
 
     # Define your struct.
     schema do
@@ -43,14 +43,14 @@ Nested blueprints
 
 ```elixir
 defmodule Nested do
-    use Blueprint.Struct
+    use Draft.Struct
     schema do
         field :value, :number
     end
 end
 
 defmodule Typed do
-    use Blueprint.Struct
+    use Draft.Struct
     schema do
         # Nested field
         field :nested,  Nested,  default: nil
@@ -60,13 +60,13 @@ end
 ```
 
 ### Inheritance
-Blueprint structs can inherit fields from other schema, their types and validation rules, using the `:extends` option
-- `:extends`  Blueprint module or list of blueprint modules for inheriting from muliple bases
+Draft structs can inherit fields from other schema, their types and validation rules, using the `:extends` option
+- `:extends`  Draft module or list of blueprint modules for inheriting from muliple bases
 
 #### Inherit from single base
 ```elixir
 defmodule Super do
-    use Blueprint.Struct
+    use Draft.Struct
     schema do
         field :super, :number
     end
@@ -79,7 +79,7 @@ defmodule Base do
 end
 
 defmodule Child do
-    use Blueprint.Struct
+    use Draft.Struct
     schema extends: Base do
         field :child,  :number
     end
@@ -99,21 +99,21 @@ the module `Super` will overwrite any fields already defined in `Base`
 
 ```elixir
 defmodule Super do
-    use Blueprint.Struct
+    use Draft.Struct
     schema do
         field :super, :number
     end
 end
 
 defmodule Base do
-    use Blueprint.Struct
+    use Draft.Struct
     schema do
         field :base, :number
     end
 end
 
 defmodule Child do
-    use Blueprint.Struct
+    use Draft.Struct
     schema extends: [Base, Super] do
         field :child,  :number
     end
@@ -129,21 +129,21 @@ this can be done with the `overwrite` field option
 #### overwrite field base definition
 ```elixir
 defmodule Super do
-    use Blueprint.Struct
+    use Draft.Struct
     schema do
         field :super, :number
     end
 end
 
 defmodule Base do
-    use Blueprint.Struct
+    use Draft.Struct
     schema do
         field :base, :number
     end
 end
 
 defmodule Child do
-    use Blueprint.Struct
+    use Draft.Struct
     schema extends: [Base, Super] do
         field :base, :string, overwrite: true
     end
@@ -155,7 +155,7 @@ end
 
 ### Methods
 
-Blueprint defines a constructor `new` method to create
+Draft defines a constructor `new` method to create
 struct from map or list. Note: the new method will throw if 
 validation of field type fails
 
@@ -163,7 +163,7 @@ validation of field type fails
 data = StructType.new(%{...})
 ```
 
-Blueprint defines a constructor `cast` method to struct but unlike
+Draft defines a constructor `cast` method to struct but unlike
 the `new` method is returns the usual `{:ok, value}` or `{:error, reason}`
 
 ```elixir
@@ -174,7 +174,7 @@ the `new` method is returns the usual `{:ok, value}` or `{:error, reason}`
 {:error, reason} = StructType.cast(123)
 ```
 
-Blueprint defines a constructor `from_struct` just like `new` but made to look like
+Draft defines a constructor `from_struct` just like `new` but made to look like
 the familiar `Map.from_struct` is uses the `new` method and will throw if 
 validation fails
 
@@ -182,7 +182,7 @@ validation fails
 data = StructType.from_struct(%StructType{...})
 ```
 
-Blueprint defines a `dump` method to dump the data to simple Map that can be easily 
+Draft defines a `dump` method to dump the data to simple Map that can be easily 
 serializable
 
 ```elixir
@@ -201,7 +201,7 @@ There are multiple way of going about this
 
 ```elixir
 defmodule StructType do
-    use Blueprint.Struct
+    use Draft.Struct
 
     # This will make all fields required.
     schema [required: true] do
@@ -219,7 +219,7 @@ By making the default value of a field `nil` that field becomes nullable
 
 ```elixir
 defmodule StructType do
-    use Blueprint.Struct
+    use Draft.Struct
 
     # This will make all fields required.
     schema [required: true] do
@@ -239,7 +239,7 @@ By making the default value of a field `nil` that field becomes nullable
 
 ```elixir
 defmodule StructType do
-    use Blueprint.Struct
+    use Draft.Struct
 
     # This will make all fields nill by default except id.
     schema do
@@ -253,7 +253,7 @@ defmodule StructType do
 end
 ```
 
-### Blueprint types
+### Draft types
 
 - any 
 - map
@@ -274,7 +274,7 @@ end
 
 ```elixir
 defmodule Typed do
-    use Blueprint.Struct
+    use Draft.Struct
 
     @mapping [
         name:   [:string, length: [min: 5, max: 10]],
@@ -293,7 +293,7 @@ end
 
 ```elixir
 defmodule Nested do
-    use Blueprint.Struct
+    use Draft.Struct
     
     schema do
         field :value, :number
@@ -301,7 +301,7 @@ defmodule Nested do
 end
 
 defmodule Typed do
-    use Blueprint.Struct
+    use Draft.Struct
 
     schema do
         field :nested_array, :array, type: Nested,  default: []
@@ -309,7 +309,7 @@ defmodule Typed do
 end
 ```
 
-### Blueprint validators
+### Draft validators
 
 - inclusion
 - exclusion
@@ -331,7 +331,7 @@ validate required, field must have a value except `nil`
 
 ```elixir
 defmodule Typed do
-    use Blueprint.Struct
+    use Draft.Struct
 
     schema do
         field :name, :string,  required: true
@@ -346,7 +346,7 @@ validate length
 
 ```elixir
 defmodule Typed do
-    use Blueprint.Struct
+    use Draft.Struct
 
     schema do
         field :name, :string,  length: [min: 2, max: 20]
@@ -361,7 +361,7 @@ validate pattern
 
 ```elixir
 defmodule Typed do
-    use Blueprint.Struct
+    use Draft.Struct
 
     schema do
         field :email, :string, pattern: :email
@@ -373,13 +373,13 @@ end
 
 ## Customization
 
-### Blueprint.Type
-Blueprint types all implement the `Blueprint.Type.Behaviour` defining a new type
+### Draft.Type
+Draft types all implement the `Draft.Type.Behaviour` defining a new type
 must implement this behaviour
 
 ```elixir
 defmodule CustomInteger do
-    @behaviour Blueprint.Type.Behaviour
+    @behaviour Draft.Type.Behaviour
 
     def cast(value, options) when is_integer(value) do
         {:ok, value}
@@ -395,13 +395,13 @@ defmodule CustomInteger do
 end
 ```
 
-### Blueprint.Validator
-Blueprint types all implement the `Blueprint.Type.Behaviour` defining a new type
+### Draft.Validator
+Draft types all implement the `Draft.Type.Behaviour` defining a new type
 must implement this behaviour
 
 ```elixir
 defmodule CustomValidator do
-    @behaviour Blueprint.Validator.Behaviour
+    @behaviour Draft.Validator.Behaviour
 
     # validate a value given a context and options 
     # defined in field definition
@@ -419,25 +419,25 @@ end
 ```
 
 
-Blueprint types and validators can be defined or overwritten using config
+Draft types and validators can be defined or overwritten using config
 
 ```elixir
-config :types, Blueprint,
+config :types, Draft,
     map: CustomMapImpl,
     custom_integer: CustomInteger,
     typename1: CustomType,
     typename2: CustomTypeImpl2
 
-config :validators, Blueprint,
+config :validators, Draft,
     validatorname: CustomValidator,
     seondvalidator: CustomSecondValidatorImpl
 ```
 
-use custom types and validators with Blueprint
+use custom types and validators with Draft
 
 ```elixir
 defmodule CustomType do
-    use Blueprint.Struct
+    use Draft.Struct
 
     # Define your struct.
     schema do

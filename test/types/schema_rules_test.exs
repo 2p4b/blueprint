@@ -2,7 +2,7 @@ defmodule SchemaRulesTest do
     use ExUnit.Case
 
     defmodule Typed do
-        use Blueprint.Schema
+        use Draft.Schema
 
         @mapping [
             name:   [:string, length: [min: 2, max: 10]],
@@ -36,7 +36,7 @@ defmodule SchemaRulesTest do
 
             assert {:error, [{:struct, _}]} =
                 casted
-                |> Blueprint.validate()
+                |> Draft.validate()
 
             {:ok, dumped} =
                 casted

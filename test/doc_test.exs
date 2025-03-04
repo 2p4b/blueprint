@@ -3,16 +3,16 @@ defmodule DocTest do
 
     describe "Doctest" do
         @tag :string
-        doctest Blueprint.Type.String
+        doctest Draft.Type.String
 
         @tag :datetime
-        doctest Blueprint.Type.Datetime
+        doctest Draft.Type.Datetime
 
         @tag :exclusion
-        doctest Blueprint.Validator.Exclusion
+        doctest Draft.Validator.Exclusion
 
         @tag :format
-        doctest Blueprint.Validator.Format
+        doctest Draft.Validator.Format
     end
 
 end

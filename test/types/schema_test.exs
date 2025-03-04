@@ -2,7 +2,7 @@ defmodule SchemaTest do
     use ExUnit.Case
 
     defmodule Nested do
-        use Blueprint.Schema
+        use Draft.Schema
         
         schema do
             field :name, :string, presence: true
@@ -11,7 +11,7 @@ defmodule SchemaTest do
     end
 
     defmodule Typed do
-        use Blueprint.Schema
+        use Draft.Schema
 
         @mapping [
             name:   [:string, length: [min: 5, max: 10]],
