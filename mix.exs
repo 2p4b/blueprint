@@ -8,7 +8,7 @@ defmodule Blueprint.MixProject do
             elixir: "~> 1.14",
             start_permanent: Mix.env() == :prod,
             consolidate_protocols: Mix.env() != :test,
-            deps: deps()
+            deps: deps(),
             name: "Blueprint",
             source_url: "https://github.com/2p4b/blueprint"
         ]
