@@ -9,6 +9,8 @@ defmodule Blueprint.MixProject do
             start_permanent: Mix.env() == :prod,
             consolidate_protocols: Mix.env() != :test,
             deps: deps()
+            name: "Blueprint",
+            source_url: "https://github.com/2p4b/blueprint"
         ]
     end
 
@@ -27,5 +29,22 @@ defmodule Blueprint.MixProject do
             {:timex, "~> 3.0"},
             {:uuid, "~> 1.1"}
         ]
+    end
+
+    
+    defp description() do
+        "Blueprint is a library for creating structs with type checking"
+    end
+
+    defp package() do
+      [
+          # This option is only needed when you don't want to use the OTP application name
+          name: "blueprint",
+          # These are the default files included in the package
+          files: ~w(lib mix.exs README.md),
+          maintainers: ["Che Mfoncho"],
+          licenses: ["MIT"],
+          links: %{"GitHub" => "https://github.com/2p4b/blueprint"}
+      ]
     end
 end
