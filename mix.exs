@@ -10,6 +10,8 @@ defmodule Blueprint.MixProject do
             consolidate_protocols: Mix.env() != :test,
             deps: deps(),
             name: "Blueprint",
+            package: package(),
+            description: description(),
             source_url: "https://github.com/2p4b/blueprint"
         ]
     end
