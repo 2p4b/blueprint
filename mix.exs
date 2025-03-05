@@ -1,18 +1,23 @@
 defmodule Draft.MixProject do
     use Mix.Project
 
+    @version "0.1.0"
+
+    @source_url "https://github.com/2p4b/blueprint"
+
     def project do
         [
             app: :draft,
-            version: "0.1.0",
+            version: @version,
             elixir: "~> 1.14",
             start_permanent: Mix.env() == :prod,
             consolidate_protocols: Mix.env() != :test,
             deps: deps(),
+            docs: docs(),
             name: "Draft",
             package: package(),
             description: description(),
-            source_url: "https://github.com/2p4b/blueprint"
+            source_url: @source_url 
         ]
     end
 
@@ -39,14 +44,26 @@ defmodule Draft.MixProject do
     end
 
     defp package() do
-      [
-          # This option is only needed when you don't want to use the OTP application name
-          name: "draft",
-          # These are the default files included in the package
-          files: ~w(lib mix.exs README.md),
-          maintainers: ["Che Mfoncho"],
-          licenses: ["MIT"],
-          links: %{"GitHub" => "https://github.com/2p4b/blueprint"}
-      ]
+        [
+            # This option is only needed when you don't want to use the OTP application name
+            name: "draft",
+            # These are the default files included in the package
+            files: ~w(lib mix.exs README.md),
+            maintainers: ["Che Mfoncho"],
+            licenses: ["MIT"],
+            links: %{"GitHub" => @source_url}
+        ]
     end
+
+    def docs() do
+        [
+            main: "readme",
+            name: "Draft",
+            source_ref: "v#{@version}",
+            canonical: "http://hexdocs.pm/draft",
+            source_url: @source_url,
+            extras: ["README.md", "LICENSE"]
+        ]
+    end
+
 end

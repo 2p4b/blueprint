@@ -2,8 +2,9 @@
 
 <!-- @moduledoc -->
 
-Draft is a library for defining structs with types some degree of type checking.
-inspired by the Ecto.Schema, only this time schemas can inherit from other schemas
+Draft is a library for building structs with runtime type validation.
+Creating and validating structs has never been easier.
+Inspired by Ecto.Schema
 
 ## Usage
 
