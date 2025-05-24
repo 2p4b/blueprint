@@ -13,7 +13,7 @@ Inspired by Ecto.Schema
 To use Draft in your project, add this to your Mix dependencies:
 
 ```elixir
-{:draft, "~> 0.1.0"},
+{:draft, "~> 1.0.0"},
 ```
 
 
