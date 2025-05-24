@@ -2,11 +2,11 @@ defmodule Draft.Schema do
 
     defmacro __using__(_) do
         quote do
-            import Draft.Schema, only: [draft: 1, draft: 2]
+            import Draft.Schema, only: [schema: 1, schema: 2]
         end
     end
 
-    defmacro draft(do: block) do
+    defmacro schema(do: block) do
         opts = []
         quote do
             Draft.Schema.__define__(
@@ -16,7 +16,7 @@ defmodule Draft.Schema do
         end
     end
 
-    defmacro draft(opts) when is_list(opts) do
+    defmacro schema(opts) when is_list(opts) do
         block = {:__block__, [], []}
         quote do
             Draft.Schema.__define__(
@@ -26,7 +26,7 @@ defmodule Draft.Schema do
         end
     end
 
-    defmacro draft(opts, do: block) when is_list(opts) do
+    defmacro schema(opts, do: block) when is_list(opts) do
         quote do
             Draft.Schema.__define__(
                 unquote(Macro.escape(block)),
@@ -43,7 +43,7 @@ defmodule Draft.Schema do
             Module.register_attribute(__MODULE__, :bp_typed, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_specs, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_fields, accumulate: true)
-            Module.register_attribute(__MODULE__, :bp_draft, accumulate: true)
+            Module.register_attribute(__MODULE__, :bp_schema, accumulate: true)
             Module.register_attribute(__MODULE__, :bp_enforce_keys, accumulate: true)
             Module.put_attribute(__MODULE__, :bp_enforce?, unquote(!!opts[:required]))
 
@@ -140,7 +140,7 @@ defmodule Draft.Schema do
             end
 
             def __blueprint__() do
-                @bp_draft
+                @bp_schema
             end
 
             def __dump__(data, opts \\ []) do
@@ -218,12 +218,12 @@ defmodule Draft.Schema do
     def __field__(mod, name, type, opts, dmod, overwrite) when is_atom(name) do
 
         if overwrite do
-            if Module.get_attribute(mod, :bp_draft) |> Keyword.get(name) do
+            if Module.get_attribute(mod, :bp_schema) |> Keyword.get(name) do
                 # overwite inheritance field
                 __undefine__(mod, name)
             end
         else
-            if fdef = Module.get_attribute(mod, :bp_draft) |> Keyword.get(name) do
+            if fdef = Module.get_attribute(mod, :bp_schema) |> Keyword.get(name) do
                 defpath = elem(fdef, 2)
                 inheritance_path =
                       defpath
@@ -305,14 +305,14 @@ defmodule Draft.Schema do
         Module.put_attribute(mod, :bp_rules, {name, opts})
         Module.put_attribute(mod, :bp_specs, {name, spec})
         Module.put_attribute(mod, :bp_fields, {name, opts[:default]})
-        Module.put_attribute(mod, :bp_draft, {name, {type, opts, defpath}})
+        Module.put_attribute(mod, :bp_schema, {name, {type, opts, defpath}})
         if enforce? do
             Module.put_attribute(mod, :bp_enforce_keys, name)
         end
     end
 
     def __undefine__(mod, name) do
-        delete_attribute_key(mod, :bp_draft, name)
+        delete_attribute_key(mod, :bp_schema, name)
         delete_attribute_key(mod, :bp_fields, name)
         delete_attribute_key(mod, :bp_rules, name)
         delete_attribute_key(mod, :bp_specs, name)

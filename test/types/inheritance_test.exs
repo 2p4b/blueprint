@@ -3,21 +3,21 @@ defmodule InheirtanceTest do
 
     defmodule Super do
         use Draft.Schema
-        draft required: true do
+        schema required: true do
             field :value, :number, default: 1
         end
     end
 
     defmodule Base do
         use Draft.Schema
-        draft extends: Super do
+        schema extends: Super do
             field :name, :string, default: "name"
         end
     end
 
     defmodule Child do
         use Draft.Schema
-        draft extends: [Base, Super]
+        schema extends: [Base, Super]
     end
 
     describe "Inheritance" do

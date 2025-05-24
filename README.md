@@ -26,7 +26,7 @@ defmodule StructType do
     use Draft.Schema
 
     # Define your struct.
-    draft do
+    schema do
         #Define a field with type string
         field :name, :string
 
@@ -45,14 +45,14 @@ Nested blueprints
 ```elixir
 defmodule Nested do
     use Draft.Schema
-    draft do
+    schema do
         field :value, :number
     end
 end
 
 defmodule Typed do
     use Draft.Schema
-    draft do
+    schema do
         # Nested field
         field :nested,  Nested,  default: nil
         field :name,    :string,   default: "my name"
@@ -61,27 +61,27 @@ end
 ```
 
 ### Inheritance
-Draft structs can inherit fields from other draft, their types and validation rules, using the `:extends` option
+Draft structs can inherit fields from other schema, their types and validation rules, using the `:extends` option
 - `:extends`  Draft module or list of blueprint modules for inheriting from muliple bases
 
 #### Inherit from single base
 ```elixir
 defmodule Super do
     use Draft.Schema
-    draft do
+    schema do
         field :super, :number
     end
 end
 
 defmodule Base do
-    draft extends: Super do
+    schema extends: Super do
         field :base, :number
     end
 end
 
 defmodule Child do
     use Draft.Schema
-    draft extends: Base do
+    schema extends: Base do
         field :child,  :number
     end
 end
@@ -94,28 +94,28 @@ when inheriting from multiple bases, the next module in the list always overwrit
 
 
 ```elixir
-    draft extends: [Base, Super]
+    schema extends: [Base, Super]
 ```
 the module `Super` will overwrite any fields already defined in `Base`
 
 ```elixir
 defmodule Super do
     use Draft.Schema
-    draft do
+    schema do
         field :super, :number
     end
 end
 
 defmodule Base do
     use Draft.Schema
-    draft do
+    schema do
         field :base, :number
     end
 end
 
 defmodule Child do
     use Draft.Schema
-    draft extends: [Base, Super] do
+    schema extends: [Base, Super] do
         field :child,  :number
     end
 end
@@ -131,21 +131,21 @@ this can be done with the `overwrite` field option
 ```elixir
 defmodule Super do
     use Draft.Schema
-    draft do
+    schema do
         field :super, :number
     end
 end
 
 defmodule Base do
     use Draft.Schema
-    draft do
+    schema do
         field :base, :number
     end
 end
 
 defmodule Child do
     use Draft.Schema
-    draft extends: [Base, Super] do
+    schema extends: [Base, Super] do
         field :base, :string, overwrite: true
     end
 end
@@ -205,7 +205,7 @@ defmodule StructType do
     use Draft.Schema
 
     # This will make all fields required.
-    draft [required: true] do
+    schema [required: true] do
         field :id,      :uuid
         field :name,    :string
         field :age,     :number
@@ -223,7 +223,7 @@ defmodule StructType do
     use Draft.Schema
 
     # This will make all fields required.
-    draft [required: true] do
+    schema [required: true] do
         field :id,      :uuid
         field :name,    :string
         field :age,     :number
@@ -243,7 +243,7 @@ defmodule StructType do
     use Draft.Schema
 
     # This will make all fields nill by default except id.
-    draft do
+    schema do
         # Ensure id is required
         field :id,      :uuid,  required: true
 
@@ -282,7 +282,7 @@ defmodule Typed do
         value:  [:number, required: false]
     ]
 
-    draft do
+    schema do
         # Define map with fields
         field :map_type, :map,  fields: @mapping
     end
@@ -296,7 +296,7 @@ end
 defmodule Nested do
     use Draft.Schema
     
-    draft do
+    schema do
         field :value, :number
     end
 end
@@ -304,7 +304,7 @@ end
 defmodule Typed do
     use Draft.Schema
 
-    draft do
+    schema do
         field :nested_array, :array, type: Nested,  default: []
     end
 end
@@ -334,7 +334,7 @@ validate required, field must have a value except `nil`
 defmodule Typed do
     use Draft.Schema
 
-    draft do
+    schema do
         field :name, :string,  required: true
     end
 end
@@ -349,7 +349,7 @@ validate length
 defmodule Typed do
     use Draft.Schema
 
-    draft do
+    schema do
         field :name, :string,  length: [min: 2, max: 20]
     end
 end
@@ -364,7 +364,7 @@ validate pattern
 defmodule Typed do
     use Draft.Schema
 
-    draft do
+    schema do
         field :email, :string, pattern: :email
     end
 end
@@ -441,7 +441,7 @@ defmodule CustomType do
     use Draft.Schema
 
     # Define your struct.
-    draft do
+    schema do
         #Define a field with type string
         field :name, :string, validatorname: [...opts]
 

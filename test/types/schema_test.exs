@@ -4,7 +4,7 @@ defmodule SchemaTest do
     defmodule Nested do
         use Draft.Schema
         
-        draft do
+        schema do
             field :name, :string, presence: true
             field :value, :number
         end
@@ -18,7 +18,7 @@ defmodule SchemaTest do
             value:  [:number, required: false]
         ]
 
-        draft do
+        schema do
             field :map_type, :map,  fields: @mapping
             field :name, :string,   default: "my name"
             field :nested, Nested,  default: nil
