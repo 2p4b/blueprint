@@ -9,7 +9,7 @@ defmodule SchemaRulesTest do
             value:  [:integer, required: false]
         ]
 
-        schema do
+        draft do
             field :name,    :string,  length: [min: 2, max: 20], pattern: :email
             field :one,     :map,     fields: @mapping
             field :nested,  Typed,    required: false
