@@ -21,9 +21,14 @@ defmodule InheirtanceTest do
     end
 
     describe "Inheritance" do
+
         @tag :inherite
         test "should inherite base struct fields" do
-            assert %Child{} |> Map.from_struct() |> Map.keys() |> length() == 2
+            object = %Child{} |> Map.from_struct() 
+            keys = Map.keys(object)
+            assert length(keys) == 2
+            assert :name in keys
+            assert :value in keys
         end
 
         @tag :inherite
