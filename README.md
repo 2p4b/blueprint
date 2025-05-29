@@ -1,461 +1,362 @@
 # Draft
 
-<!-- @moduledoc -->
-
-Draft is a library for building structs with runtime type validation.
-Creating and validating structs has never been easier.
-Inspired by Ecto.Schema
+**Draft** is a library for building typed structs with built-in validation support.
 
 ## Usage
 
 ### Setup
 
-To use Draft in your project, add this to your Mix dependencies:
+Add `:draft` to your project's dependencies in `mix.exs`:
 
 ```elixir
-{:draft, "~> 1.0.0"},
+{:draft, "~> 1.0.0"}
 ```
 
+### General Usage
 
-### General usage
-
-To define a Simple blueprint struct
+To define a simple Draft struct:
 
 ```elixir
-defmodule StructType do
-    use Draft.Schema
+defmodule Book do
+  use Draft.Schema
 
-    # Define your struct.
-    schema do
-        #Define a field with type string
-        field :name, :string
-
-        field :id,   :uuid
-
-        #Define a field with default value
-        field :age,  :number,   default: 10
-
-        field :amount,  :float
-    end
+  # Define your struct.
+  schema required: true do
+    field :id,        :string
+    field :title,     :string, min: 1, max: 32
+    field :author_id, :string
+    field :isbn,      :integer, min: 1_000_000_000, max: 9_999_999_999_999
+  end
 end
 ```
 
-Nested blueprints
+### Construction
+
+You can create a struct using `new`, `cast`, or `from_struct`. Only type information is checked during construction.
+
+#### `new`
+
+`new/1` raises an error for invalid types or missing required fields.
 
 ```elixir
-defmodule Nested do
-    use Draft.Schema
-    schema do
-        field :value, :number
-    end
+# Using a keyword list
+book = Book.new(id: "1", title: "Elixir Draft Tutorial", author_id: "2", isbn: 22222222222)
+
+# Using a map
+book = Book.new(%{
+  id: "1",
+  title: "Elixir Draft Tutorial",
+  author_id: "2",
+  isbn: 22222222222
+})
+```
+
+#### `cast`
+
+`cast/1` returns a result tuple: `{:ok, struct}` or `{:error, errors}`. `errors` is a keyword list.
+
+```elixir
+{:ok, book} = Book.cast(id: "1", title: "Elixir Draft Tutorial", author_id: "2", isbn: 22222222222)
+```
+
+#### `from_struct`
+
+Use `from_struct/1` and `from_struct!/1` to create a struct from another struct. The bang version raises on errors.
+
+```elixir
+defmodule Document do
+  use Draft.Schema
+
+  schema required: true do
+    field :id,        :string
+    field :title,     :string, min: 1, max: 32
+    field :author_id, :string
+    field :history,   :list, type: :string, default: []
+    field :isbn,      :integer, min: 1_000_000_000, max: 9_999_999_999_999
+  end
 end
 
-defmodule Typed do
-    use Draft.Schema
-    schema do
-        # Nested field
-        field :nested,  Nested,  default: nil
-        field :name,    :string,   default: "my name"
-    end
+doc = Document.new(id: "1", title: "Elixir Doc", author_id: "2", isbn: 22222222222, history: [])
+
+book = Book.from_struct!(doc)
+{:ok, book} = Book.from_struct(doc)
+```
+
+---
+
+### Required Fields
+
+By default, all fields can be `nil`. Use `required: true` in the schema to make all fields required.
+
+```elixir
+defmodule Person do
+  use Draft.Schema
+  schema required: true do
+    field :id,    :uuid
+    field :name,  :string
+    field :age,   :number
+    field :amount, :float
+  end
 end
 ```
+
+Fields with default values are considered optional:
+
+```elixir
+field :amount, :float, default: nil
+```
+
+You can make individual fields required:
+
+```elixir
+field :id, :uuid, required: true
+```
+
+---
+
+### Validation
+
+Use `Draft.errors(struct)` to validate a Draft struct. Errors are returned as a keyword list.
+
+```elixir
+book = Book.new(id: "1", title: "Draft Errors", author_id: "2", isbn: 1)
+[isbn: _] = Draft.errors(book)
+```
+
+---
 
 ### Inheritance
-Draft structs can inherit fields from other schema, their types and validation rules, using the `:extends` option
-- `:extends`  Draft module or list of blueprint modules for inheriting from muliple bases
 
-#### Inherit from single base
+Draft supports inheritance via the `:extends` option, including validation rules and types.
+
 ```elixir
-defmodule Super do
-    use Draft.Schema
-    schema do
-        field :super, :number
-    end
+defmodule Book do
+  use Draft.Schema
+
+  schema required: true do
+    field :id,        :string
+    field :title,     :string, min: 1, max: 32
+    field :author_id, :string
+    field :isbn,      :integer, min: 1_000_000_000, max: 9_999_999_999_999
+  end
 end
 
-defmodule Base do
-    schema extends: Super do
-        field :base, :number
-    end
-end
+defmodule Document do
+  use Draft.Schema
 
-defmodule Child do
-    use Draft.Schema
-    schema extends: Base do
-        field :child,  :number
-    end
-end
-
-%Child{super: 1, base: 2, child: 3}
-```
-
-#### Inherit from multiple base modules
-when inheriting from multiple bases, the next module in the list always overwrites any previously defined fields 
-
-
-```elixir
-    schema extends: [Base, Super]
-```
-the module `Super` will overwrite any fields already defined in `Base`
-
-```elixir
-defmodule Super do
-    use Draft.Schema
-    schema do
-        field :super, :number
-    end
-end
-
-defmodule Base do
-    use Draft.Schema
-    schema do
-        field :base, :number
-    end
-end
-
-defmodule Child do
-    use Draft.Schema
-    schema extends: [Base, Super] do
-        field :child,  :number
-    end
-end
-
-%Child{super: 1, base: 2, child: 3}
-
-```
-
-Sometime users may wish to overwrite certain fields with custom rules or type, 
-this can be done with the `overwrite` field option
-
-#### overwrite field base definition
-```elixir
-defmodule Super do
-    use Draft.Schema
-    schema do
-        field :super, :number
-    end
-end
-
-defmodule Base do
-    use Draft.Schema
-    schema do
-        field :base, :number
-    end
-end
-
-defmodule Child do
-    use Draft.Schema
-    schema extends: [Base, Super] do
-        field :base, :string, overwrite: true
-    end
-end
-
-%Child{super: 1, base: "2", child: 3}
-
-```
-
-### Methods
-
-Draft defines a constructor `new` method to create
-struct from map or list. Note: the new method will throw if 
-validation of field type fails
-
-```elixir
-data = StructType.new(%{...})
-```
-
-Draft defines a constructor `cast` method to struct but unlike
-the `new` method is returns the usual `{:ok, value}` or `{:error, reason}`
-
-```elixir
-{:ok, data} = StructType.cast(%{...})
-```
-
-```elixir
-{:error, reason} = StructType.cast(123)
-```
-
-Draft defines a constructor `from_struct` just like `new` but made to look like
-the familiar `Map.from_struct` is uses the `new` method and will throw if 
-validation fails
-
-```elixir
-data = StructType.from_struct(%StructType{...})
-```
-
-Draft defines a `dump` method to dump the data to simple Map that can be easily 
-serializable
-
-```elixir
-{:ok, data} = StructType.dump(%StructType{...})
-```
-
-## Advanced usage
-
-### Required fields
-
-Defining required fields is simple required fields cannot be `nil`
-
-There are multiple way of going about this
-
-#### Make all fields required
-
-```elixir
-defmodule StructType do
-    use Draft.Schema
-
-    # This will make all fields required.
-    schema [required: true] do
-        field :id,      :uuid
-        field :name,    :string
-        field :age,     :number
-        field :amount,  :float
-    end
+  schema extends: Book do
+    field :history, :list, type: :string, default: []
+  end
 end
 ```
 
-#### Exclude some fields from being required
-
-By making the default value of a field `nil` that field becomes nullable
+**Multiple inheritance:**
 
 ```elixir
-defmodule StructType do
-    use Draft.Schema
+defmodule HasAuthor do
+  schema required: true do
+    field :author_id, :string
+  end
+end
 
-    # This will make all fields required.
-    schema [required: true] do
-        field :id,      :uuid
-        field :name,    :string
-        field :age,     :number
+defmodule HasISBN do
+  schema do
+    field :isbn, :integer, min: 1_000_000_000, max: 9_999_999_999_999
+  end
+end
 
-        # This field will can by nill
-        field :amount,  :float,     default: nil
-    end
+defmodule Book do
+  use Draft.Schema
+
+  schema required: true, extends: [HasAuthor, HasISBN] do
+    field :id,    :string
+    field :title, :string, min: 1, max: 32
+  end
 end
 ```
 
-#### Make select fields required
-
-By making the default value of a field `nil` that field becomes nullable
+**Overwriting fields:**
 
 ```elixir
-defmodule StructType do
-    use Draft.Schema
+defmodule Book do
+  use Draft.Schema
 
-    # This will make all fields nill by default except id.
-    schema do
-        # Ensure id is required
-        field :id,      :uuid,  required: true
-
-        field :name,    :string
-        field :age,     :number
-        field :amount,  :float
-    end
+  schema do
+    field :id, :string
+  end
 end
+
+defmodule Document do
+  use Draft.Schema
+
+  schema extends: Book do
+    field :id, :uuid, overwrite: true
+  end
+end
+
+# Invalid UUID
+{:error, _} = Document.new(id: "1")
+
+# Valid UUID
+doc = Document.new(id: "00000000-0000-0000-0000-000000000000")
 ```
 
-### Draft types
+---
 
-- any 
-- map
-- enum
-- atom
-- uuid
-- tuple
-- float
-- array
-- struct
-- number
-- string
-- boolean
-- integer
-- datetime
+## Advanced Usage
 
-#### map
+### Map Fields
 
 ```elixir
 defmodule Typed do
-    use Draft.Schema
+  use Draft.Schema
 
-    @mapping [
-        name:   [:string, length: [min: 5, max: 10]],
-        value:  [:number, required: false]
-    ]
+  @mapping [
+    name:  [:string, length: [min: 5, max: 10]],
+    value: [:number, required: false]
+  ]
 
-    schema do
-        # Define map with fields
-        field :map_type, :map,  fields: @mapping
-    end
-
+  schema do
+    field :stats, :map, fields: @mapping
+  end
 end
 ```
 
-#### nested types
+### Nested Types
 
 ```elixir
-defmodule Nested do
-    use Draft.Schema
-    
-    schema do
-        field :value, :number
-    end
+defmodule Book do
+  use Draft.Schema
+
+  schema do
+    field :title, :string
+  end
 end
 
-defmodule Typed do
-    use Draft.Schema
+defmodule Library do
+  use Draft.Schema
 
-    schema do
-        field :nested_array, :array, type: Nested,  default: []
-    end
+  schema do
+    field :books, :list, type: Book, default: []
+  end
 end
 ```
 
-### Draft validators
-
-- inclusion
-- exclusion
-- required 
-- length
-- format
-- number
-- fields
-- struct
-- uuid
-- type
-- by
-- tld
-- pattern
-
-#### required
-
-validate required, field must have a value except `nil`
+### Required Field Validation
 
 ```elixir
-defmodule Typed do
-    use Draft.Schema
-
-    schema do
-        field :name, :string,  required: true
-    end
-end
+field :name, :string, required: true
 ```
 
-
-#### length
-
-validate length
+### Length Validation
 
 ```elixir
-defmodule Typed do
-    use Draft.Schema
-
-    schema do
-        field :name, :string,  length: [min: 2, max: 20]
-    end
-end
+field :name, :string, length: [min: 2, max: 20]
 ```
 
-
-#### pattern
-
-validate pattern
+### Pattern Validation
 
 ```elixir
-defmodule Typed do
-    use Draft.Schema
-
-    schema do
-        field :email, :string, pattern: :email
-    end
-end
+field :password, :string, pattern: ~r/^[[:alnum:]]+$/
 ```
 
-<!-- @moduledoc -->
+---
 
 ## Customization
 
-### Draft.Type
-Draft types all implement the `Draft.Type.Behaviour` defining a new type
-must implement this behaviour
+Draft types must implement both `Draft.Type.Behaviour` and `Draft.Validator.Behaviour`.
+
+### Custom Type (`Draft.Type.Behaviour`)
 
 ```elixir
-defmodule CustomInteger do
-    @behaviour Draft.Type.Behaviour
+defmodule ISBN.Type do
+  @behaviour Draft.Type.Behaviour
 
-    def cast(value, options) when is_integer(value) do
-        {:ok, value}
-    end
+  def cast(value, _opts) when is_integer(value) and value in 1_000_000_000..999_999_999_999, do:
+    {:ok, value}
 
-    def cast(value, options) do
-        {:error, ["value must be integer"]}
-    end
+  def cast(_value, _opts), do:
+    {:error, ["value must be a valid ISBN"]}
 
-    def dump(data, options) do
-        {:ok, data}
-    end
+  def dump(value, _opts), do:
+    {:ok, value}
 end
 ```
 
-### Draft.Validator
-Draft types all implement the `Draft.Type.Behaviour` defining a new type
-must implement this behaviour
+### Custom Validator (`Draft.Validator.Behaviour`)
 
 ```elixir
-defmodule CustomValidator do
-    @behaviour Draft.Validator.Behaviour
+defmodule ISBN.Validator do
+  @behaviour Draft.Validator.Behaviour
 
-    # validate a value given a context and options 
-    # defined in field definition
-    def validate(value, context, options) do
-        {:ok, value}
-    end
+  def validate(value, _context, _opts), do:
+    {:ok, value}
 
-    # vaidate return error tuple when value
-    # value fails validation 
-    def validate(value, context, options) do
-        {:error, ["reason"]}
-    end
-
+  def validate(_value, _context, _opts), do:
+    {:error, ["reason"]}
 end
 ```
 
+### Configuration
 
-Draft types and validators can be defined or overwritten using config
+In your `config/config.exs`:
 
 ```elixir
 config :types, Draft,
-    map: CustomMapImpl,
-    custom_integer: CustomInteger,
-    typename1: CustomType,
-    typename2: CustomTypeImpl2
+  isbn: ISBN.Type
 
 config :validators, Draft,
-    validatorname: CustomValidator,
-    seondvalidator: CustomSecondValidatorImpl
+  isbn: ISBN.Validator
 ```
 
-use custom types and validators with Draft
+### Usage in Schema
 
 ```elixir
-defmodule CustomType do
-    use Draft.Schema
-
-    # Define your struct.
-    schema do
-        #Define a field with type string
-        field :name, :string, validatorname: [...opts]
-
-        #Define a field with custom integer type
-        field :age,  :custom_integer,   default: 10
-    end
-end
+field :isbn_number, :isbn
 ```
 
-### Thats all there is to blueprint
+---
+
+## Built-in Types
+
+* `any`
+* `map`
+* `enum`
+* `atom`
+* `uuid`
+* `list`
+* `tuple`
+* `float`
+* `struct`
+* `number`
+* `string`
+* `boolean`
+* `integer`
+* `datetime`
+
+## Built-in Validators
+
+* `inclusion`
+* `exclusion`
+* `required`
+* `length`
+* `format`
+* `number`
+* `fields`
+* `struct`
+* `uuid`
+* `type`
+* `by`
+* `tld`
+* `pattern`
+
+---
+
+## TODO
+
+* [ ] Field documentation
+* [ ] Validation documentation
 
 
-## Todo
 
-* [ ] Field documention
-* [ ] Validation documention
 
