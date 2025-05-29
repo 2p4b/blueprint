@@ -9,7 +9,7 @@
 Add `:draft` to your project's dependencies in `mix.exs`:
 
 ```elixir
-{:draft, "~> 1.0.0"}
+{:draft, "~> 1.0.1"}
 ```
 
 ### General Usage
