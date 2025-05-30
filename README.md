@@ -348,6 +348,8 @@ field :isbn_number, :isbn
 * `struct`
 * `uuid`
 * `type`
+* `min`
+* `max`
 * `by`
 * `tld`
 * `pattern`
