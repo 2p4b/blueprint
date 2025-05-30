@@ -13,6 +13,12 @@ defmodule DocTest do
 
         @tag :format
         doctest Draft.Validator.Format
+
+        @tag :min
+        doctest Draft.Validator.Min
+
+        @tag :max
+        doctest Draft.Validator.Max
     end
 
 end

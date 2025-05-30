@@ -30,6 +30,8 @@ defmodule Draft.Registry do
         fields: Validator.Fields,
         struct: Validator.Struct,
         uuid: Validator.UUID,
+        min: Validator.Min,
+        max: Validator.Min,
         type: Validator.Type,
         by: Validator.By,
         tld: Validator.Tld,
