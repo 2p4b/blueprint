@@ -289,6 +289,8 @@ end
 defmodule ISBN.Validator do
   @behaviour Draft.Validator.Behaviour
 
+  def validate(value, opts), do: validate(value, nil, opts)
+
   def validate(value, _context, _opts), do:
     {:ok, value}
 
