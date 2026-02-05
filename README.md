@@ -1,366 +1,484 @@
 # Draft
 
-**Draft** is a library for building typed structs with built-in validation support.
+[![Hex.pm](https://img.shields.io/hexpm/v/draft.svg)](https://hex.pm/packages/draft)
+[![License](https://img.shields.io/hexpm/l/draft.svg)](https://github.com/2p4b/blueprint/blob/main/LICENSE)
 
-## Usage
+**Draft** is an Elixir library for building typed structs with built-in type coercion and validation. Define schemas with type safety, automatic casting, and flexible validation rules.
 
-### Setup
+## Installation
 
-Add `:draft` to your project's dependencies in `mix.exs`:
+Add `draft` to your dependencies in `mix.exs`:
 
 ```elixir
-{:draft, "~> 1.0"}
+def deps do
+  [
+    {:draft, "~> 1.0"}
+  ]
+end
 ```
 
-### General Usage
+## Quick Start
 
-To define a simple Draft struct:
+```elixir
+defmodule User do
+  use Draft.Schema
+
+  schema required: true do
+    field :id,    :uuid
+    field :name,  :string, min: 1, max: 100
+    field :email, :string, format: :email
+    field :age,   :integer, min: 0
+  end
+end
+
+# Create a struct (raises on error)
+user = User.new(id: "550e8400-e29b-41d4-a716-446655440000", name: "Alice", email: "alice@example.com", age: 30)
+
+# Create with result tuple
+{:ok, user} = User.cast(%{"id" => "550e8400-e29b-41d4-a716-446655440000", "name" => "Alice", "email" => "alice@example.com", "age" => "30"})
+
+# Validate
+[] = Draft.errors(user)  # No errors
+```
+
+## Defining Schemas
+
+Use `Draft.Schema` to define typed structs:
 
 ```elixir
 defmodule Book do
   use Draft.Schema
 
-  # Define your struct.
-  schema required: true do
-    field :id,        :string
-    field :title,     :string, min: 1, max: 32
-    field :author_id, :string
-    field :isbn,      :integer, min: 1_000_000_000, max: 9_999_999_999_999
+  schema do
+    field :title,     :string
+    field :author,    :string
+    field :isbn,      :integer
+    field :published, :datetime
   end
 end
 ```
-
-### Construction
-
-You can create a struct using `new`, `cast`, or `from_struct`. Only type information is checked during construction.
-
-#### `new`
-
-`new/1` raises an error for invalid types or missing required fields.
-
-```elixir
-# Using a keyword list
-book = Book.new(id: "1", title: "Elixir Draft Tutorial", author_id: "2", isbn: 22222222222)
-
-# Using a map
-book = Book.new(%{
-  id: "1",
-  title: "Elixir Draft Tutorial",
-  author_id: "2",
-  isbn: 22222222222
-})
-```
-
-#### `cast`
-
-`cast/1` returns a result tuple: `{:ok, struct}` or `{:error, errors}`. `errors` is a keyword list.
-
-```elixir
-{:ok, book} = Book.cast(id: "1", title: "Elixir Draft Tutorial", author_id: "2", isbn: 22222222222)
-```
-
-#### `from_struct`
-
-Use `from_struct/1` and `from_struct!/1` to create a struct from another struct. The bang version raises on errors.
-
-```elixir
-defmodule Document do
-  use Draft.Schema
-
-  schema required: true do
-    field :id,        :string
-    field :title,     :string, min: 1, max: 32
-    field :author_id, :string
-    field :history,   :list, type: :string, default: []
-    field :isbn,      :integer, min: 1_000_000_000, max: 9_999_999_999_999
-  end
-end
-
-doc = Document.new(id: "1", title: "Elixir Doc", author_id: "2", isbn: 22222222222, history: [])
-
-book = Book.from_struct!(doc)
-{:ok, book} = Book.from_struct(doc)
-```
-
----
 
 ### Required Fields
 
-By default, all fields can be `nil`. Use `required: true` in the schema to make all fields required.
+By default, all fields are optional (can be `nil`). Use `required: true` at the schema level to make all fields required:
 
 ```elixir
+schema required: true do
+  field :id,    :uuid
+  field :name,  :string
+  field :email, :string
+end
+```
+
+Or mark individual fields as required:
+
+```elixir
+schema do
+  field :id,    :uuid, required: true
+  field :name,  :string
+  field :notes, :string  # optional
+end
+```
+
+Fields with default values are automatically optional:
+
+```elixir
+field :status, :string, default: "pending"
+```
+
+## Construction
+
+### `new/1`
+
+Creates a struct, raising `ArgumentError` on invalid types or missing required fields:
+
+```elixir
+# From keyword list
+book = Book.new(title: "Elixir in Action", author: "Sasa Juric", isbn: 1234567890)
+
+# From map
+book = Book.new(%{title: "Elixir in Action", author: "Sasa Juric", isbn: 1234567890})
+
+# String keys are automatically converted
+book = Book.new(%{"title" => "Elixir in Action", "author" => "Sasa Juric"})
+```
+
+### `cast/1`
+
+Returns a result tuple without raising:
+
+```elixir
+{:ok, book} = Book.cast(title: "Elixir in Action", author: "Sasa Juric")
+{:error, errors} = Book.cast(title: 123)  # Type coercion error
+```
+
+### `from_struct/2`
+
+Creates a struct from another struct, useful for transforming between similar types:
+
+```elixir
+defmodule Document do
+  use Draft.Schema
+  schema do
+    field :title, :string
+    field :body,  :string
+    field :meta,  :map
+  end
+end
+
+defmodule Article do
+  use Draft.Schema
+  schema do
+    field :title,   :string
+    field :content, :string
+  end
+end
+
+doc = Document.new(title: "Hello", body: "World", meta: %{})
+
+# Direct conversion (matching field names)
+article = Article.from_struct(doc)
+
+# With field remapping
+article = Article.from_struct(doc, content: :body)
+```
+
+Returns the struct on success or `{:error, reason}` on failure.
+
+## Type Coercion
+
+Draft automatically coerces values to the correct type during construction:
+
+```elixir
+defmodule Example do
+  use Draft.Schema
+  schema do
+    field :count,  :integer
+    field :price,  :float
+    field :active, :boolean
+  end
+end
+
+# String values are coerced
+Example.new(count: "42", price: "19.99", active: "true")
+# => %Example{count: 42, price: 19.99, active: true}
+```
+
+## Validation
+
+Validation is separate from construction. Use `Draft.validate/1` or `Draft.errors/1` to validate a struct:
+
+```elixir
+defmodule Product do
+  use Draft.Schema
+  schema do
+    field :name,  :string, min: 1, max: 100
+    field :price, :number, min: 0
+    field :sku,   :string, pattern: ~r/^[A-Z]{3}-\d{4}$/
+  end
+end
+
+product = Product.new(name: "", price: -10, sku: "invalid")
+
+# Get validation errors
+errors = Draft.errors(product)
+# => [name: "must be greater than 1", price: "must be greater than 0", sku: "does not match the required format"]
+
+# Check if valid
+Draft.valid?(product)  # => false
+
+# Validate with result tuple
+{:error, errors} = Draft.validate(product)
+```
+
+### Built-in Validators
+
+| Validator | Options | Description |
+|-----------|---------|-------------|
+| `required` | `true` | Field must not be nil |
+| `min` | integer | Minimum value (numbers) or length (strings/lists) |
+| `max` | integer | Maximum value (numbers) or length (strings/lists) |
+| `length` | `min:`, `max:`, `is:`, `in:` | Exact length constraints |
+| `format` | `:email`, `:url`, or regex | String format validation |
+| `pattern` | regex | Custom regex pattern |
+| `inclusion` | list or `in:` | Value must be in list |
+| `exclusion` | list or `in:` | Value must not be in list |
+| `by` | function | Custom validation function |
+| `uuid` | `true` | Valid UUID format |
+| `tld` | `true` | Valid top-level domain |
+
+### Validation Examples
+
+```elixir
+# Length validation
+field :username, :string, length: [min: 3, max: 20]
+field :pin,      :string, length: [is: 4]
+field :code,     :string, length: [in: 6..10]
+
+# Numeric bounds
+field :age,   :integer, min: 0, max: 150
+field :score, :number,  min: 0, max: 100
+
+# Pattern matching
+field :phone, :string, pattern: ~r/^\+?[\d\s-]+$/
+field :email, :string, format: :email
+
+# Inclusion/Exclusion
+field :status, :string, inclusion: ["pending", "active", "closed"]
+field :role,   :atom,   exclusion: [:admin, :superuser]
+
+# Custom validation
+field :even_number, :integer, by: fn val -> rem(val, 2) == 0 end
+```
+
+### Custom Error Messages
+
+Validators accept a `:message` option for custom error messages with EEx templating:
+
+```elixir
+field :age, :integer, min: [min: 18, message: "must be at least <%= min %> years old"]
+field :name, :string, length: [min: 2, message: "<%= value %> is too short (min <%= min %> chars)"]
+```
+
+### Conditional Validation
+
+Skip validation based on conditions:
+
+```elixir
+# Skip if value is nil
+field :nickname, :string, min: [min: 3, allow_nil: true]
+
+# Skip if value is blank (nil or empty string)
+field :bio, :string, length: [max: 500, allow_blank: true]
+```
+
+## Built-in Types
+
+| Type | Description | Coerces From |
+|------|-------------|--------------|
+| `:string` | Text values | Any value via `to_string/1` |
+| `:integer` | Whole numbers | Strings, floats |
+| `:float` | Decimal numbers | Strings, integers |
+| `:number` | Any numeric value | Strings |
+| `:boolean` | True/false | `"true"`, `"false"`, `1`, `0` |
+| `:atom` | Atoms | Strings (existing atoms only) |
+| `:uuid` | UUID strings | Strings |
+| `:datetime` | DateTime structs | ISO8601 strings |
+| `:map` | Maps | - |
+| `:list` | Lists | - |
+| `:tuple` | Tuples | - |
+| `:enum` | Enumerated values | Strings, atoms |
+| `:struct` | Struct types | Maps |
+| `:any` | Any value | - |
+
+## Advanced Features
+
+### Nested Schemas
+
+Use Draft schemas as field types:
+
+```elixir
+defmodule Address do
+  use Draft.Schema
+  schema do
+    field :street,  :string
+    field :city,    :string
+    field :country, :string
+  end
+end
+
 defmodule Person do
   use Draft.Schema
-  schema required: true do
-    field :id,    :uuid
-    field :name,  :string
-    field :age,   :number
-    field :amount, :float
+  schema do
+    field :name,    :string
+    field :address, Address
+  end
+end
+
+Person.new(
+  name: "Alice",
+  address: %{street: "123 Main St", city: "Boston", country: "USA"}
+)
+```
+
+### Lists of Schemas
+
+```elixir
+defmodule Order do
+  use Draft.Schema
+  schema do
+    field :items, :list, type: LineItem, default: []
   end
 end
 ```
 
-Fields with default values are considered optional:
+### Enum Types
 
 ```elixir
-field :amount, :float, default: nil
+field :status, :enum, values: [:pending, :processing, :shipped, :delivered]
 ```
 
-You can make individual fields required:
+### Map Fields with Schema
+
+Define typed map fields without creating a separate module:
 
 ```elixir
-field :id, :uuid, required: true
+defmodule Report do
+  use Draft.Schema
+
+  @metadata_schema [
+    author:    [:string, required: true],
+    version:   [:integer, min: 1],
+    tags:      [:list, type: :string]
+  ]
+
+  schema do
+    field :title,    :string
+    field :metadata, :map, fields: @metadata_schema
+  end
+end
 ```
-
----
-
-### Validation
-
-Use `Draft.errors(struct)` to validate a Draft struct. Errors are returned as a keyword list.
-
-```elixir
-book = Book.new(id: "1", title: "Draft Errors", author_id: "2", isbn: 1)
-[isbn: _] = Draft.errors(book)
-```
-
----
 
 ### Inheritance
 
-Draft supports inheritance via the `:extends` option, including validation rules and types.
+Extend existing schemas with the `:extends` option:
 
 ```elixir
-defmodule Book do
+defmodule Entity do
   use Draft.Schema
-
-  schema required: true do
-    field :id,        :string
-    field :title,     :string, min: 1, max: 32
-    field :author_id, :string
-    field :isbn,      :integer, min: 1_000_000_000, max: 9_999_999_999_999
+  schema do
+    field :id,         :uuid
+    field :created_at, :datetime
+    field :updated_at, :datetime
   end
 end
 
-defmodule Document do
+defmodule User do
   use Draft.Schema
-
-  schema extends: Book do
-    field :history, :list, type: :string, default: []
+  schema extends: Entity do
+    field :name,  :string
+    field :email, :string
   end
 end
+
+# User has: id, created_at, updated_at, name, email
 ```
 
 **Multiple inheritance:**
 
 ```elixir
-defmodule HasAuthor do
-  schema required: true do
-    field :author_id, :string
-  end
+schema extends: [Timestamps, SoftDelete, Auditable] do
+  field :name, :string
 end
+```
 
-defmodule HasISBN do
-  schema do
-    field :isbn, :integer, min: 1_000_000_000, max: 9_999_999_999_999
-  end
-end
+**Overwriting inherited fields:**
 
-defmodule Book do
+```elixir
+defmodule Admin do
   use Draft.Schema
-
-  schema required: true, extends: [HasAuthor, HasISBN] do
-    field :id,    :string
-    field :title, :string, min: 1, max: 32
+  schema extends: User do
+    field :email, :string, overwrite: true, format: :email  # Override with stricter validation
   end
 end
 ```
 
-**Overwriting fields:**
+### Serialization (Dump)
+
+Convert structs back to plain maps:
 
 ```elixir
-defmodule Book do
-  use Draft.Schema
-
-  schema do
-    field :id, :string
-  end
-end
-
-defmodule Document do
-  use Draft.Schema
-
-  schema extends: Book do
-    field :id, :uuid, overwrite: true
-  end
-end
-
-# Invalid UUID
-{:error, _} = Document.new(id: "1")
-
-# Valid UUID
-doc = Document.new(id: "00000000-0000-0000-0000-000000000000")
+user = User.new(name: "Alice", email: "alice@example.com")
+{:ok, map} = User.dump(user)
+# => {:ok, %{"name" => "Alice", "email" => "alice@example.com"}}
 ```
 
----
+## Custom Types
 
-## Advanced Usage
-
-### Map Fields
+Implement `Draft.Type.Behaviour` for custom types:
 
 ```elixir
-defmodule Typed do
-  use Draft.Schema
-
-  @mapping [
-    name:  [:string, length: [min: 5, max: 10]],
-    value: [:number, required: false]
-  ]
-
-  schema do
-    field :stats, :map, fields: @mapping
-  end
-end
-```
-
-### Nested Types
-
-```elixir
-defmodule Book do
-  use Draft.Schema
-
-  schema do
-    field :title, :string
-  end
-end
-
-defmodule Library do
-  use Draft.Schema
-
-  schema do
-    field :books, :list, type: Book, default: []
-  end
-end
-```
-
-### Required Field Validation
-
-```elixir
-field :name, :string, required: true
-```
-
-### Length Validation
-
-```elixir
-field :name, :string, length: [min: 2, max: 20]
-```
-
-### Pattern Validation
-
-```elixir
-field :password, :string, pattern: ~r/^[[:alnum:]]+$/
-```
-
----
-
-## Customization
-
-Draft types must implement both `Draft.Type.Behaviour` and `Draft.Validator.Behaviour`.
-
-### Custom Type (`Draft.Type.Behaviour`)
-
-```elixir
-defmodule ISBN.Type do
+defmodule MyApp.Types.Money do
   @behaviour Draft.Type.Behaviour
 
-  def cast(value, _opts) when is_integer(value) and value in 1_000_000_000..999_999_999_999, do:
-    {:ok, value}
+  @impl true
+  def cast(value, _opts) when is_integer(value) do
+    {:ok, Decimal.new(value)}
+  end
 
-  def cast(_value, _opts), do:
-    {:error, ["value must be a valid ISBN"]}
+  def cast(value, _opts) when is_binary(value) do
+    case Decimal.parse(value) do
+      {decimal, ""} -> {:ok, decimal}
+      _ -> {:error, ["invalid money format"]}
+    end
+  end
 
-  def dump(value, _opts), do:
-    {:ok, value}
+  def cast(_, _), do: {:error, ["invalid money format"]}
+
+  @impl true
+  def dump(value, _opts) do
+    {:ok, Decimal.to_string(value)}
+  end
 end
 ```
 
-### Custom Validator (`Draft.Validator.Behaviour`)
+## Custom Validators
+
+Implement `Draft.Validator.Behaviour`:
 
 ```elixir
-defmodule ISBN.Validator do
-  @behaviour Draft.Validator.Behaviour
+defmodule MyApp.Validators.Positive do
+  use Draft.Validator
 
-  def validate(value, opts), do: validate(value, nil, opts)
-
-  def validate(value, _context, _opts), do:
+  def validate(value, _opts) when is_number(value) and value > 0 do
     {:ok, value}
+  end
 
-  def validate(_value, _context, _opts), do:
-    {:error, ["reason"]}
+  def validate(_value, opts) do
+    {:error, message(opts, "must be positive")}
+  end
 end
 ```
 
 ### Configuration
 
-In your `config/config.exs`:
+Register custom types and validators in `config/config.exs`:
 
 ```elixir
-config :types, Draft,
-  isbn: ISBN.Type
+config :draft, :types,
+  money: MyApp.Types.Money
 
-config :validators, Draft,
-  isbn: ISBN.Validator
+config :draft, :validators,
+  positive: MyApp.Validators.Positive
 ```
 
-### Usage in Schema
+Then use them in schemas:
 
 ```elixir
-field :isbn_number, :isbn
+field :amount, :money, positive: true
 ```
 
----
+## API Reference
 
-## Built-in Types
+### Schema Functions
 
-* `any`
-* `map`
-* `enum`
-* `atom`
-* `uuid`
-* `list`
-* `tuple`
-* `float`
-* `struct`
-* `number`
-* `string`
-* `boolean`
-* `integer`
-* `datetime`
+| Function | Description |
+|----------|-------------|
+| `new/1` | Create struct, raises on error |
+| `cast/1` | Create struct, returns result tuple |
+| `from_struct/2` | Create from another struct with optional field remapping |
+| `dump/1` | Serialize struct to map |
+| `__blueprint__/0` | Get schema definition |
+| `__fields__/0` | Get field list with types |
 
-## Built-in Validators
+### Draft Functions
 
-* `inclusion`
-* `exclusion`
-* `required`
-* `length`
-* `format`
-* `number`
-* `fields`
-* `struct`
-* `uuid`
-* `type`
-* `min`
-* `max`
-* `by`
-* `tld`
-* `pattern`
+| Function | Description |
+|----------|-------------|
+| `Draft.valid?/1` | Check if struct is valid |
+| `Draft.validate/1` | Validate and return result tuple |
+| `Draft.errors/1` | Get list of validation errors |
 
----
+## License
 
-## TODO
-
-* [ ] Field documentation
-* [ ] Validation documentation
-
-
-
-
+MIT License - see [LICENSE](LICENSE) for details.
