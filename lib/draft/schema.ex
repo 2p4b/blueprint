@@ -111,18 +111,6 @@ defmodule Draft.Schema do
                 Kernel.apply(__MODULE__, :new, [Enum.into(attr, %{})])
             end
 
-            def from_struct!(strt, remap \\ []) when is_struct(strt) do
-                params =
-                    Enum.reduce(remap, Map.from_struct(strt), fn({nkey, okey}, acc) ->
-                        with {:ok, value} <- Map.fetch(acc, okey) do
-                            Map.put(acc, nkey, value)
-                        else
-                            _ -> acc
-                        end
-                    end)
-                Kernel.apply(__MODULE__, :new, [params])
-            end
-
             def from_struct(strt, remap \\ []) when is_struct(strt) do
                 params =
                     Enum.reduce(remap, Map.from_struct(strt), fn({nkey, okey}, acc) ->
@@ -132,7 +120,13 @@ defmodule Draft.Schema do
                             _ -> acc
                         end
                     end)
-                Kernel.apply(__MODULE__, :cast, [params])
+
+                case Kernel.apply(__MODULE__, :cast, [params]) do
+                    {:ok, val} ->
+                        val
+                      err ->
+                          err
+                end
             end
 
             def cast(attr, opts \\ [])
