@@ -7,6 +7,10 @@ defmodule Draft.Validator.Pattern do
         validate(value, {class, pattern})
     end
 
+    def validate(value, %Regex{}=pattern) do
+        validate(value, {:regex, pattern})
+    end
+
     def validate(_value, {class, nil}) do
         {:error, "invalid pattern #{class}"}
     end
@@ -22,5 +26,10 @@ defmodule Draft.Validator.Pattern do
             {:error, "must match pattern #{class}"}
         end
     end
+
+    def validate(value, unknown) do
+        validate(value, {unknown, nil})
+    end
+
 
 end
