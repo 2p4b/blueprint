@@ -3,7 +3,9 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/draft.svg)](https://hex.pm/packages/draft)
 [![License](https://img.shields.io/hexpm/l/draft.svg)](https://github.com/2p4b/blueprint/blob/main/LICENSE)
 
-**Draft** is an Elixir library for building typed structs with built-in type coercion and validation. Define schemas with type safety, automatic casting, and flexible validation rules.
+**Draft** is an Elixir library for building typed structs with built-in type 
+coercion and validation. Define schemas with type safety, automatic casting, 
+and flexible validation rules.
 
 ## Installation
 
@@ -11,9 +13,9 @@ Add `draft` to your dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [
-    {:draft, "~> 1.0"}
-  ]
+    [
+        {:draft, "~> 1.1.1"}
+    ]
 end
 ```
 
@@ -21,14 +23,14 @@ end
 
 ```elixir
 defmodule User do
-  use Draft.Schema
+    use Draft.Schema
 
-  schema required: true do
-    field :id,    :uuid
-    field :name,  :string, min: 1, max: 100
-    field :email, :string, format: :email
-    field :age,   :integer, min: 0
-  end
+    schema required: true do
+        field :id,    :uuid
+        field :name,  :string, min: 1, max: 100
+        field :email, :string, pattern: :email
+        field :age,   :integer, min: 0
+    end
 end
 
 # Create a struct (raises on error)
@@ -47,14 +49,14 @@ Use `Draft.Schema` to define typed structs:
 
 ```elixir
 defmodule Book do
-  use Draft.Schema
+    use Draft.Schema
 
-  schema do
-    field :title,     :string
-    field :author,    :string
-    field :isbn,      :integer
-    field :published, :datetime
-  end
+    schema do
+        field :title,     :string
+        field :author,    :string
+        field :isbn,      :integer
+        field :published, :datetime
+    end
 end
 ```
 
@@ -64,9 +66,9 @@ By default, all fields are optional (can be `nil`). Use `required: true` at the 
 
 ```elixir
 schema required: true do
-  field :id,    :uuid
-  field :name,  :string
-  field :email, :string
+    field :id,    :uuid
+    field :name,  :string
+    field :email, :string
 end
 ```
 
@@ -74,9 +76,9 @@ Or mark individual fields as required:
 
 ```elixir
 schema do
-  field :id,    :uuid, required: true
-  field :name,  :string
-  field :notes, :string  # optional
+    field :id,    :uuid, required: true
+    field :name,  :string
+    field :notes, :string  # optional
 end
 ```
 
@@ -118,20 +120,20 @@ Creates a struct from another struct, useful for transforming between similar ty
 
 ```elixir
 defmodule Document do
-  use Draft.Schema
-  schema do
-    field :title, :string
-    field :body,  :string
-    field :meta,  :map
-  end
+    use Draft.Schema
+    schema do
+        field :title, :string
+        field :body,  :string
+        field :meta,  :map
+    end
 end
 
 defmodule Article do
-  use Draft.Schema
-  schema do
-    field :title,   :string
-    field :content, :string
-  end
+    use Draft.Schema
+    schema do
+        field :title,   :string
+        field :content, :string
+    end
 end
 
 doc = Document.new(title: "Hello", body: "World", meta: %{})
@@ -151,12 +153,12 @@ Draft automatically coerces values to the correct type during construction:
 
 ```elixir
 defmodule Example do
-  use Draft.Schema
-  schema do
-    field :count,  :integer
-    field :price,  :float
-    field :active, :boolean
-  end
+    use Draft.Schema
+    schema do
+        field :count,  :integer
+        field :price,  :float
+        field :active, :boolean
+    end
 end
 
 # String values are coerced
@@ -170,12 +172,12 @@ Validation is separate from construction. Use `Draft.validate/1` or `Draft.error
 
 ```elixir
 defmodule Product do
-  use Draft.Schema
-  schema do
-    field :name,  :string, min: 1, max: 100
-    field :price, :number, min: 0
-    field :sku,   :string, pattern: ~r/^[A-Z]{3}-\d{4}$/
-  end
+    use Draft.Schema
+    schema do
+        field :name,  :string, min: 1, max: 100
+        field :price, :number, min: 0
+        field :sku,   :string, pattern: ~r/^[A-Z]{3}-\d{4}$/
+    end
 end
 
 product = Product.new(name: "", price: -10, sku: "invalid")
@@ -279,20 +281,20 @@ Use Draft schemas as field types:
 
 ```elixir
 defmodule Address do
-  use Draft.Schema
-  schema do
-    field :street,  :string
-    field :city,    :string
-    field :country, :string
-  end
+    use Draft.Schema
+    schema do
+        field :street,  :string
+        field :city,    :string
+        field :country, :string
+    end
 end
 
 defmodule Person do
-  use Draft.Schema
-  schema do
-    field :name,    :string
-    field :address, Address
-  end
+    use Draft.Schema
+    schema do
+        field :name,    :string
+        field :address, Address
+    end
 end
 
 Person.new(
@@ -305,10 +307,10 @@ Person.new(
 
 ```elixir
 defmodule Order do
-  use Draft.Schema
-  schema do
-    field :items, :list, type: LineItem, default: []
-  end
+    use Draft.Schema
+    schema do
+        field :items, :list, type: LineItem, default: []
+    end
 end
 ```
 
@@ -324,18 +326,18 @@ Define typed map fields without creating a separate module:
 
 ```elixir
 defmodule Report do
-  use Draft.Schema
+    use Draft.Schema
 
-  @metadata_schema [
-    author:    [:string, required: true],
-    version:   [:integer, min: 1],
-    tags:      [:list, type: :string]
-  ]
+    @metadata_schema [
+        author:    [:string, required: true],
+        version:   [:integer, min: 1],
+        tags:      [:list, type: :string]
+    ]
 
-  schema do
-    field :title,    :string
-    field :metadata, :map, fields: @metadata_schema
-  end
+    schema do
+        field :title,    :string
+        field :metadata, :map, fields: @metadata_schema
+    end
 end
 ```
 
@@ -345,20 +347,20 @@ Extend existing schemas with the `:extends` option:
 
 ```elixir
 defmodule Entity do
-  use Draft.Schema
-  schema do
-    field :id,         :uuid
-    field :created_at, :datetime
-    field :updated_at, :datetime
-  end
+    use Draft.Schema
+    schema do
+        field :id,         :uuid
+        field :created_at, :datetime
+        field :updated_at, :datetime
+    end
 end
 
 defmodule User do
-  use Draft.Schema
-  schema extends: Entity do
-    field :name,  :string
-    field :email, :string
-  end
+    use Draft.Schema
+    schema extends: Entity do
+        field :name,  :string
+        field :email, :string
+    end
 end
 
 # User has: id, created_at, updated_at, name, email
@@ -368,7 +370,7 @@ end
 
 ```elixir
 schema extends: [Timestamps, SoftDelete, Auditable] do
-  field :name, :string
+    field :name, :string
 end
 ```
 
@@ -376,10 +378,10 @@ end
 
 ```elixir
 defmodule Admin do
-  use Draft.Schema
-  schema extends: User do
-    field :email, :string, overwrite: true, format: :email  # Override with stricter validation
-  end
+    use Draft.Schema
+    schema extends: User do
+        field :email, :string, overwrite: true, format: :email  # Override with stricter validation
+    end
 end
 ```
 
@@ -399,26 +401,26 @@ Implement `Draft.Type.Behaviour` for custom types:
 
 ```elixir
 defmodule MyApp.Types.Money do
-  @behaviour Draft.Type.Behaviour
+    @behaviour Draft.Type.Behaviour
 
-  @impl true
-  def cast(value, _opts) when is_integer(value) do
-    {:ok, Decimal.new(value)}
-  end
-
-  def cast(value, _opts) when is_binary(value) do
-    case Decimal.parse(value) do
-      {decimal, ""} -> {:ok, decimal}
-      _ -> {:error, ["invalid money format"]}
+    @impl true
+    def cast(value, _opts) when is_integer(value) do
+        {:ok, Decimal.new(value)}
     end
-  end
 
-  def cast(_, _), do: {:error, ["invalid money format"]}
+    def cast(value, _opts) when is_binary(value) do
+    case Decimal.parse(value) do
+        {decimal, ""} -> {:ok, decimal}
+        _ -> {:error, ["invalid money format"]}
+    end
+    end
 
-  @impl true
-  def dump(value, _opts) do
-    {:ok, Decimal.to_string(value)}
-  end
+    def cast(_, _), do: {:error, ["invalid money format"]}
+
+    @impl true
+    def dump(value, _opts) do
+        {:ok, Decimal.to_string(value)}
+    end
 end
 ```
 
@@ -428,15 +430,15 @@ Implement `Draft.Validator.Behaviour`:
 
 ```elixir
 defmodule MyApp.Validators.Positive do
-  use Draft.Validator
+    use Draft.Validator
 
-  def validate(value, _opts) when is_number(value) and value > 0 do
-    {:ok, value}
-  end
+    def validate(value, _opts) when is_number(value) and value > 0 do
+        {:ok, value}
+    end
 
-  def validate(_value, opts) do
-    {:error, message(opts, "must be positive")}
-  end
+    def validate(_value, opts) do
+        {:error, message(opts, "must be positive")}
+    end
 end
 ```
 
@@ -446,10 +448,10 @@ Register custom types and validators in `config/config.exs`:
 
 ```elixir
 config :draft, :types,
-  money: MyApp.Types.Money
+    money: MyApp.Types.Money
 
 config :draft, :validators,
-  positive: MyApp.Validators.Positive
+    positive: MyApp.Validators.Positive
 ```
 
 Then use them in schemas:
