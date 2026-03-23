@@ -34,10 +34,20 @@ defmodule User do
 end
 
 # Create a struct (raises on error)
-user = User.new(id: "550e8400-e29b-41d4-a716-446655440000", name: "Alice", email: "alice@example.com", age: 30)
+user = User.new(
+  id: "550e8400-e29b-41d4-a716-446655440000",
+  name: "Alice",
+  email: "alice@example.com",
+  age: 30
+)
 
 # Create with result tuple
-{:ok, user} = User.cast(%{"id" => "550e8400-e29b-41d4-a716-446655440000", "name" => "Alice", "email" => "alice@example.com", "age" => "30"})
+{:ok, user} = User.cast(%{
+  "id" => "550e8400-e29b-41d4-a716-446655440000",
+  "name" => "Alice",
+  "email" => "alice@example.com",
+  "age" => "30"
+})
 
 # Validate
 [] = Draft.errors(user)  # No errors
@@ -62,7 +72,8 @@ end
 
 ### Required Fields
 
-By default, all fields are optional (can be `nil`). Use `required: true` at the schema level to make all fields required:
+By default, all fields are optional (can be `nil`). Use `required: true`
+at the schema level to make all fields required:
 
 ```elixir
 schema required: true do
@@ -168,7 +179,8 @@ Example.new(count: "42", price: "19.99", active: "true")
 
 ## Validation
 
-Validation is separate from construction. Use `Draft.validate/1` or `Draft.errors/1` to validate a struct:
+Validation is separate from construction. Use `Draft.validate/1` or
+`Draft.errors/1` to validate a struct:
 
 ```elixir
 defmodule Product do
@@ -184,7 +196,11 @@ product = Product.new(name: "", price: -10, sku: "invalid")
 
 # Get validation errors
 errors = Draft.errors(product)
-# => [name: "must be greater than 1", price: "must be greater than 0", sku: "does not match the required format"]
+# => [
+#   name: "must be greater than 1",
+#   price: "must be greater than 0",
+#   sku: "does not match the required format"
+# ]
 
 # Check if valid
 Draft.valid?(product)  # => false
@@ -239,7 +255,8 @@ Validators accept a `:message` option for custom error messages with EEx templat
 
 ```elixir
 field :age, :integer, min: [min: 18, message: "must be at least <%= min %> years old"]
-field :name, :string, length: [min: 2, message: "<%= value %> is too short (min <%= min %> chars)"]
+field :name, :string,
+  length: [min: 2, message: "<%= value %> is too short (min <%= min %> chars)"]
 ```
 
 ### Conditional Validation
@@ -363,27 +380,125 @@ defmodule User do
     end
 end
 
-# User has: id, created_at, updated_at, name, email
+# User has all fields from Entity plus its own:
+# %User{id: nil, created_at: nil, updated_at: nil, name: nil, email: nil}
+user = User.new(
+  id: "550e8400-e29b-41d4-a716-446655440000",
+  name: "Alice",
+  email: "alice@example.com"
+)
+```
+
+**Inheriting required fields:**
+
+If the parent schema is defined with `required: true`, child schemas
+inherit that enforcement:
+
+```elixir
+defmodule Entity do
+    use Draft.Schema
+    schema required: true do
+        field :id,         :uuid
+        field :created_at, :datetime
+    end
+end
+
+defmodule Post do
+    use Draft.Schema
+    schema extends: Entity do
+        field :title, :string, required: true
+        field :body,  :string  # optional
+    end
+end
+
+# :id, :created_at, and :title are all required
+Post.new(title: "Hello")  # raises — :id and :created_at are missing
+```
+
+**Multi-level inheritance:**
+
+```elixir
+defmodule Timestamps do
+    use Draft.Schema
+    schema do
+        field :created_at, :datetime
+        field :updated_at, :datetime
+    end
+end
+
+defmodule Entity do
+    use Draft.Schema
+    schema extends: Timestamps do
+        field :id, :uuid
+    end
+end
+
+defmodule User do
+    use Draft.Schema
+    schema extends: Entity do
+        field :name,  :string
+        field :email, :string
+    end
+end
+
+# User inherits from Entity which inherits from Timestamps:
+# %User{created_at: nil, updated_at: nil, id: nil, name: nil, email: nil}
 ```
 
 **Multiple inheritance:**
 
 ```elixir
-schema extends: [Timestamps, SoftDelete, Auditable] do
-    field :name, :string
+defmodule Timestamps do
+    use Draft.Schema
+    schema do
+        field :created_at, :datetime
+        field :updated_at, :datetime
+    end
 end
+
+defmodule SoftDelete do
+    use Draft.Schema
+    schema do
+        field :deleted_at, :datetime
+    end
+end
+
+defmodule Post do
+    use Draft.Schema
+    schema extends: [Timestamps, SoftDelete] do
+        field :title, :string
+        field :body,  :string
+    end
+end
+
+# Post has: created_at, updated_at, deleted_at, title, body
 ```
 
 **Overwriting inherited fields:**
 
+Use `overwrite: true` on a field to replace an inherited field's type or validators:
+
 ```elixir
+defmodule User do
+    use Draft.Schema
+    schema extends: Entity do
+        field :name,  :string
+        field :email, :string  # no format validation
+    end
+end
+
 defmodule Admin do
     use Draft.Schema
     schema extends: User do
-        field :email, :string, overwrite: true, format: :email  # Override with stricter validation
+        # Replace the inherited :email with a stricter version
+        field :email, :string, overwrite: true, format: :email
     end
 end
+
+admin = Admin.new(name: "Bob", email: "not-an-email")
+Draft.valid?(admin)  # => false — format: :email is now enforced
 ```
+
 
 ### Serialization (Dump)
 
@@ -470,8 +585,6 @@ field :amount, :money, positive: true
 | `cast/1` | Create struct, returns result tuple |
 | `from_struct/2` | Create from another struct with optional field remapping |
 | `dump/1` | Serialize struct to map |
-| `__blueprint__/0` | Get schema definition |
-| `__fields__/0` | Get field list with types |
 
 ### Draft Functions
 
