@@ -110,7 +110,6 @@ defmodule Draft.Schema do
                 Kernel.apply(__MODULE__, :new!, [Enum.into(attr, %{})])
             end
 
-            @deprecated "Use new!/1 instead"
             def new(attr \\ %{})
             def new(attr) when is_map(attr), do: new!(attr)
             def new(attr) when is_list(attr), do: new!(Enum.into(attr, %{}))
