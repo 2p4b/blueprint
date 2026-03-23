@@ -33,8 +33,8 @@ defmodule User do
     end
 end
 
-# Create a struct (raises on error)
-user = User.new(
+# Create a struct, raises on error
+user = User.new!(
   id: "550e8400-e29b-41d4-a716-446655440000",
   name: "Alice",
   email: "alice@example.com",
@@ -101,19 +101,20 @@ field :status, :string, default: "pending"
 
 ## Construction
 
-### `new/1`
+### `new!/1`
 
-Creates a struct, raising `ArgumentError` on invalid types or missing required fields:
+Creates a struct, raising `ArgumentError` on invalid types or missing
+required fields:
 
 ```elixir
 # From keyword list
-book = Book.new(title: "Elixir in Action", author: "Sasa Juric", isbn: 1234567890)
+book = Book.new!(title: "Elixir in Action", author: "Sasa Juric", isbn: 1234567890)
 
 # From map
-book = Book.new(%{title: "Elixir in Action", author: "Sasa Juric", isbn: 1234567890})
+book = Book.new!(%{title: "Elixir in Action", author: "Sasa Juric", isbn: 1234567890})
 
 # String keys are automatically converted
-book = Book.new(%{"title" => "Elixir in Action", "author" => "Sasa Juric"})
+book = Book.new!(%{"title" => "Elixir in Action", "author" => "Sasa Juric"})
 ```
 
 ### `cast/1`
@@ -122,7 +123,7 @@ Returns a result tuple without raising:
 
 ```elixir
 {:ok, book} = Book.cast(title: "Elixir in Action", author: "Sasa Juric")
-{:error, errors} = Book.cast(title: 123)  # Type coercion error
+{:error, reason} = Book.cast(title: 123)  # Type coercion error
 ```
 
 ### `from_struct/2`
@@ -581,7 +582,8 @@ field :amount, :money, positive: true
 
 | Function | Description |
 |----------|-------------|
-| `new/1` | Create struct, raises on error |
+| `new!/1` | Create struct, raises on error |
+| `new/1` | Deprecated alias for `new!/1` |
 | `cast/1` | Create struct, returns result tuple |
 | `from_struct/2` | Create from another struct with optional field remapping |
 | `dump/1` | Serialize struct to map |

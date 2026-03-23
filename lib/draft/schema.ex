@@ -89,14 +89,14 @@ defmodule Draft.Schema do
                 Module.put_attribute(__MODULE__, :bp_str_keys, {key, to_string(key)})
             end)
 
-            def new(attr \\ %{})
-            def new(attr) when is_map(attr) do
+            def new!(attr \\ %{})
+            def new!(attr) when is_map(attr) do
                 case cast(attr, []) do
                     {:ok, data} ->
                         data
 
                     {:error, error} ->
-                        message = 
+                        message =
                               if is_binary(error) do
                                   error
                               else
@@ -106,10 +106,14 @@ defmodule Draft.Schema do
                 end
             end
 
-
-            def new(attr) when is_list(attr) do
-                Kernel.apply(__MODULE__, :new, [Enum.into(attr, %{})])
+            def new!(attr) when is_list(attr) do
+                Kernel.apply(__MODULE__, :new!, [Enum.into(attr, %{})])
             end
+
+            @deprecated "Use new!/1 instead"
+            def new(attr \\ %{})
+            def new(attr) when is_map(attr), do: new!(attr)
+            def new(attr) when is_list(attr), do: new!(Enum.into(attr, %{}))
 
             def from_struct(strt, remap \\ []) when is_struct(strt) do
                 params =
